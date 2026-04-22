@@ -12,10 +12,6 @@ document.addEventListener('DOMContentLoaded', () => {
         if (storedUser) {
             nicknameDisplay.textContent = storedUser;
             userInfo.style.display = 'inline-block';
-            
-            // If user exists, we might want to change register to 'Profile' or hide it
-            // For now, let's keep it but enhance the UI
-            btnRegister.textContent = 'Mi Perfil';
         } else {
             userInfo.style.display = 'none';
         }
