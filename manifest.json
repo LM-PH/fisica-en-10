@@ -1,0 +1,17 @@
+{
+  "name": "Física en 10",
+  "short_name": "Física10",
+  "description": "Domina la física en ráfagas de 10 segundos.",
+  "start_url": "index.html",
+  "display": "standalone",
+  "background_color": "#0a0a0c",
+  "theme_color": "#00f2ff",
+  "icons": [
+    {
+      "src": "icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any maskable"
+    }
+  ]
+}
