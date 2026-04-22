@@ -6,14 +6,13 @@ document.addEventListener('DOMContentLoaded', () => {
     const db = typeof firebase !== 'undefined' ? firebase.firestore() : null;
 
     let streak = 0;
-    let sessionBest = 0;
     let totalCorrect = 0;
     let highScore = localStorage.getItem('best_streak') || 0;
+    let sessionBest = 0;
+    
     let timerInterval = null;
-    let timeLeft = 10;
-    let currentQuestion = null;
-    let lastQuestionId = null;
     let isGameOver = false;
+    let gameActive = false;
 
     const nickname = localStorage.getItem('user') || 'Jugador';
     document.getElementById('game-nickname').textContent = nickname;
@@ -24,11 +23,12 @@ document.addEventListener('DOMContentLoaded', () => {
     const timerText = document.getElementById('timer-text');
     const questionText = document.getElementById('question-text');
     const optionsGrid = document.getElementById('options-grid');
+    const startOverlay = document.getElementById('start-overlay');
+    const btnRealStart = document.getElementById('btn-real-start');
 
     if(bestDisplay) bestDisplay.textContent = highScore;
 
-    // Reset timer completely
-    const clearEveryTimer = () => {
+    const clearGameTimer = () => {
         if (timerInterval) {
             clearInterval(timerInterval);
             timerInterval = null;
@@ -36,7 +36,8 @@ document.addEventListener('DOMContentLoaded', () => {
     };
 
     const showGameOver = (reason) => {
-        clearEveryTimer();
+        gameActive = false;
+        clearGameTimer();
         isGameOver = true;
         
         const modal = document.getElementById('game-over-modal');
@@ -52,64 +53,43 @@ document.addEventListener('DOMContentLoaded', () => {
         if (streak > 0) saveGameResult(streak);
     };
 
-    const saveGameResult = async (finalStreak) => {
-        if (!db || nickname === 'Jugador') return;
-        try {
-            await db.collection('partidas').add({
-                nickname: nickname,
-                puntaje: finalStreak,
-                fecha: new Date().toISOString()
-            });
-        } catch (e) { console.error(e); }
-    };
-
-    const updateFirestoreScore = async (newScore) => {
-        if (!db || nickname === 'Jugador') return;
-        try {
-            await db.collection('usuarios').doc(nickname).update({ mejorRacha: parseInt(newScore) });
-        } catch (e) { console.error(e); }
-    };
-
+    // MEASURING TIME WITH SYSTEM CLOCK (FAIL-SAFE)
     const startTimer = () => {
-        clearEveryTimer();
-        if (isGameOver) return;
+        clearGameTimer();
+        if (isGameOver || !gameActive) return;
 
-        timeLeft = 10.0;
-        timerBar.style.width = '100%';
-        timerBar.style.background = 'linear-gradient(90deg, #39ff14, #00f2ff)';
-        timerText.textContent = '10s';
+        const DURATION = 10000; // 10 seconds in ms
+        const startTime = Date.now();
+        const endTime = startTime + DURATION;
 
         timerInterval = setInterval(() => {
-            if (isGameOver) {
-                clearEveryTimer();
+            const now = Date.now();
+            const remaining = endTime - now;
+
+            if (remaining <= 0) {
+                clearGameTimer();
+                timerBar.style.width = '0%';
+                timerText.textContent = '0s';
+                onTimeOut();
                 return;
             }
 
-            timeLeft -= 0.1;
-            
-            if (timeLeft <= 0) {
-                timeLeft = 0;
-                clearEveryTimer();
-                onTimeOut();
-            }
-
-            const percentage = (timeLeft / 10) * 100;
+            const percentage = (remaining / DURATION) * 100;
             timerBar.style.width = `${percentage}%`;
-            timerText.textContent = `${Math.ceil(timeLeft)}s`;
+            timerText.textContent = `${Math.ceil(remaining / 1000)}s`;
 
-            if (timeLeft <= 3) {
+            if (remaining <= 3000) {
                 timerBar.style.background = '#ff4444';
                 timerText.style.color = '#ff4444';
             } else {
+                timerBar.style.background = 'linear-gradient(90deg, #39ff14, #00f2ff)';
                 timerText.style.color = 'var(--neon-blue)';
             }
-        }, 100);
+        }, 50);
     };
 
     const onTimeOut = () => {
-        if (isGameOver) return;
-        const allBtns = document.querySelectorAll('.option-btn');
-        allBtns.forEach(b => b.style.pointerEvents = 'none');
+        if (!gameActive) return;
         showGameOver('timeout');
     };
 
@@ -120,7 +100,7 @@ document.addEventListener('DOMContentLoaded', () => {
             const snapshot = await db.collection('preguntas').get();
             if (snapshot.empty) {
                 loadedQuestions = [
-                    { id: 'l1', q: "¿Cuál es la unidad de la fuerza?", options: ["Newton", "Joule", "Watt", "Pascal"], correct: 0, dificultad: 'Fácil', tema: 'Mecánica' }
+                    { id: 'l1', q: "¿Cuál es la unidad de la fuerza?", options: ["Newton", "Joule", "Watt", "Pascal"], correct: 0, dificultad: 'Fácil' }
                 ];
             } else {
                 loadedQuestions = snapshot.docs.map(doc => ({
@@ -128,20 +108,19 @@ document.addEventListener('DOMContentLoaded', () => {
                     q: doc.data().pregunta,
                     options: doc.data().opciones,
                     correct: doc.data().correcta,
-                    dificultad: doc.data().dificultad || 'Fácil',
-                    tema: doc.data().tema || 'Física'
+                    dificultad: doc.data().dificultad || 'Fácil'
                 }));
             }
-            loadQuestion();
-        } catch (e) {
-            questionText.textContent = "Error al conectar con la base de datos.";
-        }
+            // Enable start button once questions are ready
+            btnRealStart.disabled = false;
+            btnRealStart.textContent = "¡INICIAR MISIÓN!";
+        } catch (e) { console.error(e); }
     };
 
     const loadQuestion = () => {
-        if (isGameOver || loadedQuestions.length === 0) return;
+        if (isGameOver || !gameActive || loadedQuestions.length === 0) return;
 
-        clearEveryTimer();
+        clearGameTimer();
 
         let pool = loadedQuestions.filter(q => {
             if (streak < 3) return q.dificultad === 'Fácil';
@@ -153,7 +132,7 @@ document.addEventListener('DOMContentLoaded', () => {
         let available = pool.filter(q => q.id !== lastQuestionId);
         if (available.length === 0) available = pool;
 
-        currentQuestion = available[Math.floor(Math.random() * available.length)];
+        const currentQuestion = available[Math.floor(Math.random() * available.length)];
         lastQuestionId = currentQuestion.id;
 
         questionText.textContent = currentQuestion.q;
@@ -163,19 +142,22 @@ document.addEventListener('DOMContentLoaded', () => {
             const btn = document.createElement('button');
             btn.className = 'option-btn';
             btn.textContent = opt;
-            btn.onclick = () => checkAnswer(index, btn);
+            btn.onclick = () => {
+                if (!gameActive) return;
+                checkAnswer(index, currentQuestion.correct, btn);
+            };
             optionsGrid.appendChild(btn);
         });
 
         startTimer();
     };
 
-    const checkAnswer = (index, btn) => {
-        clearEveryTimer();
+    const checkAnswer = (index, correct, btn) => {
+        clearGameTimer();
         const allBtns = document.querySelectorAll('.option-btn');
         allBtns.forEach(b => b.style.pointerEvents = 'none');
 
-        if (index === currentQuestion.correct) {
+        if (index === correct) {
             btn.classList.add('correct');
             streak++;
             totalCorrect++;
@@ -185,28 +167,56 @@ document.addEventListener('DOMContentLoaded', () => {
             if (streak > highScore) {
                 highScore = streak;
                 localStorage.setItem('best_streak', highScore);
-                if(bestDisplay) bestDisplay.textContent = highScore;
+                if (bestDisplay) bestDisplay.textContent = highScore;
                 updateFirestoreScore(highScore);
             }
-
             setTimeout(loadQuestion, 1000);
         } else {
             btn.classList.add('wrong');
-            allBtns[currentQuestion.correct].classList.add('correct');
+            allBtns[correct].classList.add('correct');
             setTimeout(() => showGameOver('incorrect'), 1000);
         }
     };
 
+    const saveGameResult = async (finalStreak) => {
+        if (!db || nickname === 'Jugador') return;
+        try {
+            await db.collection('partidas').add({
+                nickname: nickname,
+                puntaje: finalStreak,
+                fecha: new Date().toISOString()
+            });
+        } catch (e) {}
+    };
+
+    const updateFirestoreScore = async (newScore) => {
+        if (!db || nickname === 'Jugador') return;
+        try {
+            await db.collection('usuarios').doc(nickname).update({ mejorRacha: parseInt(newScore) });
+        } catch (e) {}
+    };
+
+    // START FLOW
+    btnRealStart.addEventListener('click', () => {
+        startOverlay.classList.add('hidden');
+        gameActive = true;
+        isGameOver = false;
+        loadQuestion();
+    });
+
     document.getElementById('btn-restart').onclick = () => {
+        document.getElementById('game-over-modal').classList.add('hidden');
+        gameActive = true;
         isGameOver = false;
         streak = 0;
         totalCorrect = 0;
         streakDisplay.textContent = '0';
-        document.getElementById('game-over-modal').classList.add('hidden');
         loadQuestion();
     };
 
     document.getElementById('btn-home').onclick = () => window.location.href = 'index.html';
 
+    btnRealStart.disabled = true;
+    btnRealStart.textContent = "Cargando Preguntas...";
     fetchQuestions();
 });

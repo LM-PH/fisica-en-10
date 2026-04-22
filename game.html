@@ -3,18 +3,22 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>En Partida - Física en 10</title>
+    <title>Misión Física - Física en 10</title>
     <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;700;900&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="style.css">
-    <link rel="manifest" href="manifest.json">
-    <meta name="theme-color" content="#00f2ff">
-    <meta name="apple-mobile-web-app-capable" content="yes">
-    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-    <link rel="apple-touch-icon" href="icon-512.png">
 </head>
 <body>
     <div class="glow-orb orb-top"></div>
     <div class="glow-orb orb-bottom"></div>
+
+    <!-- Pantalla de Inicio de Partida -->
+    <div id="start-overlay" class="modal-overlay">
+        <div class="modal-content border-glow">
+            <h2 style="color: var(--neon-blue);">¿LISTO PARA LA MISIÓN?</h2>
+            <p>Tienes 10 segundos por pregunta. La racha más larga gana.</p>
+            <button id="btn-real-start" class="btn btn-primary" style="margin-top: 2rem;">¡COMENZAR AHORA!</button>
+        </div>
+    </div>
 
     <main id="app">
         <a href="index.html" class="back-btn">←</a>
@@ -22,52 +26,48 @@
             <div id="player-tag" class="user-status" style="display: inline-block; margin: 0; padding: 0.5rem 1rem;">
                 <span id="game-nickname">Jugador</span>
             </div>
-            <div class="streak-counter">
-                Racha: <span id="streak-val">0</span> | Best: <span id="best-val">0</span>
+            <div class="stats-container">
+                <div class="stat">
+                    <span class="stat-label">RACHA</span>
+                    <span id="streak-val" class="stat-value">0</span>
+                </div>
+                <div class="stat">
+                    <span class="stat-label">RÉCORD</span>
+                    <span id="best-val" class="stat-value">0</span>
+                </div>
             </div>
         </header>
 
-        <div class="timer-container border-glow">
+        <div class="timer-container">
             <div id="timer-bar" class="timer-bar"></div>
-            <div id="timer-text" style="position: absolute; right: 10px; top: -25px; font-size: 0.9rem; color: var(--neon-blue); font-weight: 700;">10s</div>
+            <span id="timer-text" class="timer-text">10s</span>
         </div>
 
-        <section class="question-card" id="question-text">
-            Cargando pregunta...
+        <section class="question-container border-glow">
+            <p id="question-text">Preparando motores cuánticos...</p>
+            <div id="options-grid" class="options-grid">
+                <!-- Opciones se generan dinámicamente -->
+            </div>
         </section>
-
-        <div class="options-container" id="options-grid">
-            <!-- Opciones se cargarán por JS -->
-            <button class="option-btn">Opción 1</button>
-            <button class="option-btn">Opción 2</button>
-            <button class="option-btn">Opción 3</button>
-            <button class="option-btn">Opción 4</button>
-        </div>
-
-        <div style="margin-top: 2rem;">
-            <button onclick="window.location.href='index.html'" class="btn-secondary" style="border:none; background:transparent; font-size: 0.8rem; opacity: 0.5; cursor:pointer;">
-                Abandonar partida
-            </button>
-        </div>
     </main>
 
-    <!-- Game Over Modal -->
+    <!-- Modal de Fin de Juego -->
     <div id="game-over-modal" class="modal-overlay hidden">
-        <div class="modal-content">
-            <h2 class="neon-text-red">¡TIEMPO AGOTADO!</h2>
+        <div class="modal-content border-glow">
+            <h2>¡MISIÓN TERMINADA!</h2>
             <div class="final-stats">
-                <div class="stat-box">
-                    <span>Puntaje Total</span>
-                    <strong id="final-score">0</strong>
+                <div class="final-stat">
+                    <span>Correctas:</span>
+                    <span id="final-score">0</span>
                 </div>
-                <div class="stat-box">
-                    <span>Mejor Racha</span>
-                    <strong id="final-streak">0</strong>
+                <div class="final-stat">
+                    <span>Racha Máxima:</span>
+                    <span id="final-streak">0</span>
                 </div>
             </div>
             <div class="modal-actions">
-                <button id="btn-restart" class="btn btn-primary">Volver a jugar</button>
-                <button id="btn-home" class="btn btn-secondary">Inicio</button>
+                <button id="btn-restart" class="btn btn-primary">REINTENTAR</button>
+                <button id="btn-home" class="btn btn-secondary">INICIO</button>
             </div>
         </div>
     </div>
@@ -75,8 +75,7 @@
     <!-- Firebase SDKs -->
     <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore-compat.js"></script>
-    
     <script src="firebase-config.js"></script>
-    <script src="game.js"></script>
+    <script src="game.js?v=2.0"></script>
 </body>
 </html>
