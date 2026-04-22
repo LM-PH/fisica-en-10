@@ -1,24 +1,6 @@
 document.addEventListener('DOMContentLoaded', () => {
-    const userInfo = document.getElementById('user-info');
-    const nicknameDisplay = document.getElementById('nickname-display');
     const btnStart = document.getElementById('btn-start');
     const btnRegister = document.getElementById('btn-register');
-
-    // Logic to check local user
-    const checkUser = () => {
-        // We look for 'user' or 'nickname' in localStorage
-        const storedUser = localStorage.getItem('user') || localStorage.getItem('nickname');
-        
-        if (storedUser) {
-            nicknameDisplay.textContent = storedUser;
-            userInfo.style.display = 'inline-block';
-        } else {
-            userInfo.style.display = 'none';
-        }
-    };
-
-    // Initial check
-    checkUser();
 
     // Event Listeners for UI interaction
     btnStart.addEventListener('click', () => {
