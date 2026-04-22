@@ -3,14 +3,9 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Ranking - Física en 10</title>
+    <title>Ranking Galáctico - Física en 10</title>
     <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;700;900&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="style.css">
-    <link rel="manifest" href="manifest.json">
-    <meta name="theme-color" content="#00f2ff">
-    <meta name="apple-mobile-web-app-capable" content="yes">
-    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-    <link rel="apple-touch-icon" href="icon-512.png">
 </head>
 <body>
     <div class="glow-orb orb-top"></div>
@@ -18,20 +13,25 @@
 
     <main id="app">
         <a href="index.html" class="back-btn">←</a>
-        <h2 class="view-title">TOP RANKING</h2>
+        <h2 class="view-title">HALL OF FAME</h2>
 
-        <div id="leaderboard-container" class="leaderboard-list">
-            <!-- Cargando... -->
-            <div style="text-align: center; opacity: 0.5;">Sincronizando con la red neuronal...</div>
+        <div class="tabs-container">
+            <button class="tab-btn active" data-filter="global">GLOBAL</button>
+            <button class="tab-btn" data-filter="grado">MI GRADO</button>
+            <button class="tab-btn" data-filter="grupo">MI GRUPO</button>
         </div>
 
-        <a href="index.html" class="btn btn-secondary" style="margin-top: 2rem;">Volver al inicio</a>
+        <div id="filter-display" style="font-size: 0.8rem; margin-bottom: 1rem; color: var(--neon-blue); font-weight: bold; opacity: 0.8;"></div>
+
+        <div id="leaderboard-container" class="leaderboard-list">
+            <!-- Ranking se genera aquí -->
+            <div class="loading-spinner">Sincronizando con satélites...</div>
+        </div>
     </main>
 
     <!-- Firebase SDKs -->
     <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore-compat.js"></script>
-    
     <script src="firebase-config.js"></script>
     <script src="leaderboard.js"></script>
 </body>
