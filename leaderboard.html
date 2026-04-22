@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Ranking Galáctico - Física en 10</title>
+    <title>Ranking Global - Física en 10</title>
     <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;700;900&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="style.css">
 </head>
@@ -11,20 +11,12 @@
     <div class="glow-orb orb-top"></div>
     <div class="glow-orb orb-bottom"></div>
 
-    <main id="app" style="height: auto; min-height: 100vh; padding-top: 80px;">
+    <main id="app">
         <a href="index.html" class="back-btn">←</a>
-        <h2 class="view-title" style="margin-bottom: 1rem;">HALL OF FAME</h2>
-
-        <div class="tabs-container">
-            <button class="tab-btn active" data-filter="global">GLOBAL</button>
-            <button class="tab-btn" data-filter="grado">GRADO</button>
-            <button class="tab-btn" data-filter="grupo">GRUPO</button>
-        </div>
-
-        <div id="filter-display" style="font-size: 0.8rem; margin-bottom: 1.5rem; color: var(--neon-blue); text-shadow: 0 0 5px var(--neon-blue);"></div>
+        <h2 class="view-title">RANKING GLOBAL</h2>
 
         <div id="leaderboard-container" class="leaderboard-list">
-            <div class="loading-spinner">Cargando base de datos...</div>
+            <div class="loading-spinner">Obteniendo datos de los mejores científicos...</div>
         </div>
     </main>
 
@@ -32,6 +24,53 @@
     <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore-compat.js"></script>
     <script src="firebase-config.js"></script>
-    <script src="leaderboard.js"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', async () => {
+            if (!firebase.apps.length) firebase.initializeApp(window.firebaseConfig);
+            const db = firebase.firestore();
+            const container = document.getElementById('leaderboard-container');
+
+            try {
+                const snapshot = await db.collection('usuarios')
+                    .orderBy('mejorRacha', 'desc')
+                    .limit(50)
+                    .get();
+
+                container.innerHTML = '';
+                
+                if (snapshot.empty) {
+                    container.innerHTML = '<div class="loading-spinner">Aún no hay astronautas registrados.</div>';
+                    return;
+                }
+
+                snapshot.forEach((doc, index) => {
+                    const data = doc.data();
+                    const item = document.createElement('div');
+                    item.className = 'leaderboard-item border-glow';
+                    
+                    const avatarImg = data.avatar ? `avatars/${data.avatar}` : 'avatars/avatar1.png';
+                    
+                    // Formato: Nickname (Nombre)
+                    const label = `${data.nickname} (${data.nombre || 'Sin nombre'})`;
+
+                    item.innerHTML = `
+                        <div class="rank-number">#${index + 1}</div>
+                        <div class="user-pill">
+                            <img src="${avatarImg}" class="player-avatar-small">
+                            <div class="user-meta">
+                                <span class="user-nickname">${label}</span>
+                                <span class="user-class">${data.grado || '?'}º ${data.grupo || '?'}</span>
+                            </div>
+                        </div>
+                        <div class="user-score">${data.mejorRacha || 0} pts</div>
+                    `;
+                    container.appendChild(item);
+                });
+            } catch (err) {
+                console.error(err);
+                container.innerHTML = '<div class="loading-spinner">Error al conectar con la estación espacial.</div>';
+            }
+        });
+    </script>
 </body>
 </html>

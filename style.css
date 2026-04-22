@@ -466,7 +466,7 @@ body {
     align-items: center;
     gap: 1rem;
     transition: transform 0.2s;
-    height: 60px; /* Tamaño fijo para consistencia */
+    min-height: 65px; /* Altura mínima pero flexible */
 }
 
 .player-avatar-small {
