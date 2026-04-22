@@ -6,21 +6,39 @@
     <title>Ranking Global - Física en 10</title>
     <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;700;900&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="style.css">
+    <style>
+        .rank-list { width: 100%; max-width: 480px; display: flex; flex-direction: column; gap: 0.7rem; padding-bottom: 3rem; }
+        .rank-row {
+            display: flex; align-items: center; gap: 0.8rem;
+            background: rgba(255,255,255,0.05);
+            border: 1px solid rgba(255,255,255,0.1);
+            border-radius: 14px; padding: 0.75rem 1rem;
+        }
+        .rank-pos { font-size: 1.4rem; font-weight: 900; color: #00f2ff; width: 36px; flex-shrink: 0; text-align: center; }
+        .rank-pos.gold   { color: #ffd700; }
+        .rank-pos.silver { color: #c0c0c0; }
+        .rank-pos.bronze { color: #cd7f32; }
+        .rank-avatar { width: 38px; height: 38px; border-radius: 50%; border: 2px solid #00f2ff; background: #111; flex-shrink: 0; }
+        .rank-info { flex: 1; min-width: 0; }
+        .rank-name { font-weight: 700; font-size: 0.9rem; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+        .rank-sub  { font-size: 0.7rem; opacity: 0.6; }
+        .rank-pts  { font-weight: 900; color: #39ff14; font-size: 1rem; white-space: nowrap; }
+        .loading-msg { text-align: center; padding: 2rem; opacity: 0.7; font-style: italic; }
+    </style>
 </head>
 <body>
     <div class="glow-orb orb-top"></div>
     <div class="glow-orb orb-bottom"></div>
 
-    <main id="app">
+    <main id="app" style="padding-top: 80px; height: auto; min-height: 100vh;">
         <a href="index.html" class="back-btn">←</a>
-        <h2 class="view-title">RANKING GLOBAL</h2>
+        <h2 class="view-title" style="margin-bottom: 1.5rem;">🏆 RANKING GLOBAL</h2>
 
-        <div id="leaderboard-container" class="leaderboard-list">
-            <div class="loading-spinner">Obteniendo datos de los mejores científicos...</div>
+        <div id="list" class="rank-list">
+            <div class="loading-msg">Cargando clasificación...</div>
         </div>
     </main>
 
-    <!-- Firebase SDKs -->
     <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore-compat.js"></script>
     <script src="firebase-config.js"></script>
@@ -28,47 +46,49 @@
         document.addEventListener('DOMContentLoaded', async () => {
             if (!firebase.apps.length) firebase.initializeApp(window.firebaseConfig);
             const db = firebase.firestore();
-            const container = document.getElementById('leaderboard-container');
+            const list = document.getElementById('list');
 
             try {
-                const snapshot = await db.collection('usuarios')
+                const snap = await db.collection('usuarios')
                     .orderBy('mejorRacha', 'desc')
                     .limit(50)
                     .get();
 
-                container.innerHTML = '';
-                
-                if (snapshot.empty) {
-                    container.innerHTML = '<div class="loading-spinner">Aún no hay astronautas registrados.</div>';
+                if (snap.empty) {
+                    list.innerHTML = '<div class="loading-msg">Nadie en el ranking aún. ¡Sé el primero!</div>';
                     return;
                 }
 
-                snapshot.forEach((doc, index) => {
-                    const data = doc.data();
-                    const item = document.createElement('div');
-                    item.className = 'leaderboard-item border-glow';
-                    
-                    const avatarImg = data.avatar ? `avatars/${data.avatar}` : 'avatars/avatar1.png';
-                    
-                    // Formato: Nickname (Nombre)
-                    const label = `${data.nickname} (${data.nombre || 'Sin nombre'})`;
+                list.innerHTML = '';
+                let pos = 0;
+                snap.forEach(doc => {
+                    pos++;
+                    const d = doc.data();
+                    const row = document.createElement('div');
+                    row.className = 'rank-row';
 
-                    item.innerHTML = `
-                        <div class="rank-number">#${index + 1}</div>
-                        <div class="user-pill">
-                            <img src="${avatarImg}" class="player-avatar-small">
-                            <div class="user-meta">
-                                <span class="user-nickname">${label}</span>
-                                <span class="user-class">${data.grado || '?'}º ${data.grupo || '?'}</span>
-                            </div>
+                    let posClass = '';
+                    if (pos === 1) posClass = 'gold';
+                    else if (pos === 2) posClass = 'silver';
+                    else if (pos === 3) posClass = 'bronze';
+
+                    const avatar = d.avatar ? `avatars/${d.avatar}` : 'avatars/avatar1.png';
+                    const displayName = `${d.nickname || 'Anónimo'} (${d.nombre || 'Sin nombre'})`;
+
+                    row.innerHTML = `
+                        <div class="rank-pos ${posClass}">#${pos}</div>
+                        <img src="${avatar}" class="rank-avatar" onerror="this.src='avatars/avatar1.png'">
+                        <div class="rank-info">
+                            <div class="rank-name">${displayName}</div>
+                            <div class="rank-sub">${d.grado || '?'}º ${d.grupo || '?'}</div>
                         </div>
-                        <div class="user-score">${data.mejorRacha || 0} pts</div>
+                        <div class="rank-pts">${d.mejorRacha || 0} pts</div>
                     `;
-                    container.appendChild(item);
+                    list.appendChild(row);
                 });
             } catch (err) {
                 console.error(err);
-                container.innerHTML = '<div class="loading-spinner">Error al conectar con la estación espacial.</div>';
+                list.innerHTML = '<div class="loading-msg">Error al cargar datos. Revisa conexión.</div>';
             }
         });
     </script>

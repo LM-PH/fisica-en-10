@@ -547,6 +547,11 @@ body {
     opacity: 0.7;
 }
 
+/* ========================
+   CRITICAL UTILITY
+======================== */
+.hidden { display: none !important; }
+
 /* Animations */
 @keyframes title-pulse {
     0%, 100% { transform: scale(1); filter: drop-shadow(0 0 15px rgba(0, 242, 255, 0.3)); }
