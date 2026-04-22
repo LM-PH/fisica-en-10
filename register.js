@@ -6,15 +6,10 @@ document.addEventListener('DOMContentLoaded', () => {
     const db = firebase.firestore();
 
     const form = document.getElementById('register-form');
-    const nicknameInput = document.getElementById('nickname');
-    const extraFields = document.getElementById('extra-fields');
-    const checkMsg = document.getElementById('check-msg');
     const avatarOptions = document.querySelectorAll('.avatar-option');
     const avatarInput = document.getElementById('selected-avatar');
-    const submitBtn = document.getElementById('submit-btn');
-
-    let isNewUser = false;
-    let checkTimeout;
+    const nicknameInput = document.getElementById('nickname');
+    const checkMsg = document.getElementById('check-msg');
 
     // Avatar Selection logic
     avatarOptions.forEach(option => {
@@ -25,71 +20,68 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     });
 
-    // Smart Nickname check
+    // Just a quick check to see if nickname is taken as they type
     nicknameInput.addEventListener('input', () => {
-        clearTimeout(checkTimeout);
-        checkMsg.textContent = 'Buscando piloto en la NASA...';
-        checkMsg.style.color = 'var(--neon-blue)';
-        
-        checkTimeout = setTimeout(async () => {
-            const nick = nicknameInput.value.trim();
-            if (nick.length < 3) {
-                checkMsg.textContent = '';
-                extraFields.classList.add('hidden');
-                return;
-            }
+        const nick = nicknameInput.value.trim();
+        if (nick.length < 3) {
+            checkMsg.textContent = '';
+            return;
+        }
 
-            try {
-                const docRef = db.collection('usuarios').doc(nick);
-                const doc = await docRef.get();
-
-                if (doc.exists) {
-                    const data = doc.data();
-                    checkMsg.textContent = `¡Piloto reconocido! Bienvenido de nuevo.`;
-                    checkMsg.style.color = 'var(--neon-green)';
-                    extraFields.classList.add('hidden');
-                    isNewUser = false;
-                    submitBtn.textContent = 'INGRESAR A LA MISIÓN';
-                } else {
-                    checkMsg.textContent = 'Nuevo piloto detectado. Completa tu perfil.';
-                    checkMsg.style.color = '#ffcc00';
-                    extraFields.classList.remove('hidden');
-                    isNewUser = true;
-                    submitBtn.textContent = 'REGISTRAR Y COMENZAR';
-                }
-            } catch (error) {
-                console.error("Error checking nick:", error);
+        db.collection('usuarios').doc(nick).get().then(doc => {
+            if (doc.exists) {
+                checkMsg.textContent = 'Nickname ya ocupado ⚠️';
+                checkMsg.style.color = '#ff4444';
+            } else {
+                checkMsg.textContent = 'Nickname disponible ✅';
+                checkMsg.style.color = 'var(--neon-green)';
             }
-        }, 800);
+        });
     });
 
     // Form Submission
     form.addEventListener('submit', async (e) => {
         e.preventDefault();
+
         const nick = nicknameInput.value.trim();
+        const avatar = avatarInput.value;
 
-        if (isNewUser) {
-            const userData = {
-                nombre: document.getElementById('nombre').value || 'Anónimo',
-                grado: document.getElementById('grado').value || '?',
-                grupo: document.getElementById('grupo').value || '?',
-                nickname: nick,
-                avatar: avatarInput.value || 'avatar1.png',
-                mejorRacha: 0,
-                createdAt: new Date().toISOString()
-            };
+        if (!avatar) {
+            alert('¡Elige un avatar antes de despegar!');
+            return;
+        }
 
-            try {
-                await db.collection('usuarios').doc(nick).set(userData);
-                localStorage.setItem('user', nick);
-                window.location.href = 'game.html';
-            } catch (error) {
-                alert('No pudimos registrarte. Revisa tu conexión.');
+        const userData = {
+            nombre: document.getElementById('nombre').value,
+            correo: document.getElementById('correo').value,
+            grado: document.getElementById('grado').value,
+            grupo: document.getElementById('grupo').value,
+            nickname: nick,
+            avatar: avatar,
+            mejorRacha: 0,
+            createdAt: new Date().toISOString()
+        };
+
+        try {
+            // Check availability again before saving
+            const doc = await db.collection('usuarios').doc(nick).get();
+            if (doc.exists) {
+                alert('Este nickname ya está en uso. Elige otro por favor.');
+                return;
             }
-        } else {
-            // Existing user, just login
+
+            // Save to Firebase
+            await db.collection('usuarios').doc(nick).set(userData);
+
+            // Save to local storage for automatic login
             localStorage.setItem('user', nick);
+            
+            alert('¡Registro exitoso, Piloto ' + nick + '!');
             window.location.href = 'game.html';
+
+        } catch (error) {
+            console.error("Error al registrar:", error);
+            alert('Error en la comunicación con la base de datos de la NASA.');
         }
     });
 });

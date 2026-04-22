@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Identificación - Física en 10</title>
+    <title>Registro de Piloto - Física en 10</title>
     <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;700;900&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="style.css">
 </head>
@@ -12,55 +12,58 @@
     <div class="glow-orb orb-bottom"></div>
 
     <main id="app">
-        <h2 class="view-title">CENTRO DE CONTROL</h2>
+        <h2 class="view-title">REGISTRO DE PILOTOS</h2>
         
         <div class="form-container">
             <form id="register-form">
                 <div class="form-group">
-                    <label for="nickname">Tu Nickname de Piloto</label>
+                    <label for="nombre">Nombre Real</label>
+                    <input type="text" id="nombre" class="form-control" placeholder="Escribe tu nombre" required>
+                </div>
+
+                <div class="form-group">
+                    <label for="correo">Correo Electrónico</label>
+                    <input type="email" id="correo" class="form-control" placeholder="usuario@escuela.com" required>
+                </div>
+
+                <div class="form-group">
+                    <label for="nickname">Nickname de Juego</label>
                     <input type="text" id="nickname" class="form-control" placeholder="Ej: Einstein2025" required>
                     <p id="check-msg" style="font-size: 0.7rem; margin-top: 0.5rem; opacity: 0.8; height: 1rem;"></p>
                 </div>
 
-                <div id="extra-fields" class="hidden">
-                    <div class="form-group">
-                        <label for="nombre">Nombre Real (Opcional)</label>
-                        <input type="text" id="nombre" class="form-control" placeholder="Tu nombre">
+                <div style="display: flex; gap: 1rem; margin-bottom: 1.5rem;">
+                    <div class="form-group" style="flex: 1;">
+                        <label for="grado">Grado</label>
+                        <input type="number" id="grado" class="form-control" placeholder="3" min="1" max="6" required>
                     </div>
-
-                    <div style="display: flex; gap: 1rem; margin-bottom: 1.5rem;">
-                        <div class="form-group" style="flex: 1;">
-                            <label for="grado">Grado</label>
-                            <input type="number" id="grado" class="form-control" placeholder="3" min="1" max="6">
-                        </div>
-                        <div class="form-group" style="flex: 1;">
-                            <label for="grupo">Grupo</label>
-                            <input type="text" id="grupo" class="form-control" placeholder="A" maxlength="1">
-                        </div>
-                    </div>
-
-                    <div class="form-group">
-                        <label>Elige tu Avatar</label>
-                        <div class="avatar-grid" id="avatar-selector">
-                            <div class="avatar-option" data-avatar="avatar1.png">
-                                <img src="avatars/avatar1.png" alt="Avatar 1">
-                            </div>
-                            <div class="avatar-option" data-avatar="avatar2.png">
-                                <img src="avatars/avatar2.png" alt="Avatar 2">
-                            </div>
-                            <div class="avatar-option" data-avatar="avatar3.png">
-                                <img src="avatars/avatar3.png" alt="Avatar 3">
-                            </div>
-                            <div class="avatar-option" data-avatar="avatar4.png">
-                                <img src="avatars/avatar4.png" alt="Avatar 4">
-                            </div>
-                        </div>
-                        <input type="hidden" id="selected-avatar">
+                    <div class="form-group" style="flex: 1;">
+                        <label for="grupo">Grupo</label>
+                        <input type="text" id="grupo" class="form-control" placeholder="A" maxlength="1" required>
                     </div>
                 </div>
 
+                <div class="form-group">
+                    <label>Elige tu Avatar (Brainrot Style)</label>
+                    <div class="avatar-grid" id="avatar-selector">
+                        <div class="avatar-option" data-avatar="avatar1.png">
+                            <img src="avatars/avatar1.png" alt="Avatar 1">
+                        </div>
+                        <div class="avatar-option" data-avatar="avatar2.png">
+                            <img src="avatars/avatar2.png" alt="Avatar 2">
+                        </div>
+                        <div class="avatar-option" data-avatar="avatar3.png">
+                            <img src="avatars/avatar3.png" alt="Avatar 3">
+                        </div>
+                        <div class="avatar-option" data-avatar="avatar4.png">
+                            <img src="avatars/avatar4.png" alt="Avatar 4">
+                        </div>
+                    </div>
+                    <input type="hidden" id="selected-avatar" required>
+                </div>
+
                 <button type="submit" class="btn btn-primary" id="submit-btn" style="margin-top: 1rem;">
-                    INGRESAR AL LABORATORIO
+                    REGISTRAR PERFIL Y COMENZAR
                 </button>
             </form>
         </div>
