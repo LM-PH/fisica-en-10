@@ -1,0 +1,71 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Acceso de Piloto - Física en 10</title>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;700;900&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <div class="glow-orb orb-top"></div>
+    <div class="glow-orb orb-bottom"></div>
+
+    <main id="app">
+        <h2 class="view-title">INGRESO RÁPIDO</h2>
+        
+        <div class="form-container">
+            <form id="login-form">
+                <div class="form-group">
+                    <label for="nickname">Dime tu Nickname de Piloto</label>
+                    <input type="text" id="nickname" class="form-control" placeholder="Ej: Einstein2025" required>
+                    <p id="login-msg" style="font-size: 0.7rem; margin-top: 0.5rem; opacity: 0.8; height: 1rem; color: var(--neon-blue);"></p>
+                </div>
+
+                <button type="submit" class="btn btn-primary" style="margin-top: 1rem;">
+                    INICIAR COMPETICIÓN
+                </button>
+            </form>
+        </div>
+
+        <p style="margin-top: 2rem; font-size: 0.9rem; opacity: 0.7;">
+            ¿No tienes perfil? <a href="register.html" style="color: var(--neon-blue); text-decoration: none; font-weight: bold;">Regístrate aquí</a>
+        </p>
+
+        <a href="index.html" class="back-link">← Volver al Inicio</a>
+    </main>
+
+    <!-- Firebase SDKs -->
+    <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore-compat.js"></script>
+    <script src="firebase-config.js"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            if (!firebase.apps.length) firebase.initializeApp(window.firebaseConfig);
+            const db = firebase.firestore();
+            const form = document.getElementById('login-form');
+            const nickInput = document.getElementById('nickname');
+            const msg = document.getElementById('login-msg');
+
+            form.addEventListener('submit', async (e) => {
+                e.preventDefault();
+                const nick = nickInput.value.trim();
+                msg.textContent = 'Verificando credenciales...';
+
+                try {
+                    const doc = await db.collection('usuarios').doc(nick).get();
+                    if (doc.exists) {
+                        localStorage.setItem('user', nick);
+                        window.location.href = 'game.html';
+                    } else {
+                        msg.textContent = 'Nickname no encontrado. ¿Escribiste bien?';
+                        msg.style.color = '#ff4444';
+                    }
+                } catch (err) {
+                    msg.textContent = 'Error de conexión con la base de datos.';
+                }
+            });
+        });
+    </script>
+</body>
+</html>

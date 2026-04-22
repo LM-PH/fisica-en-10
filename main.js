@@ -22,20 +22,13 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // Event Listeners for UI interaction
     btnStart.addEventListener('click', () => {
-        const storedUser = localStorage.getItem('user') || localStorage.getItem('nickname');
-        
         // Efecto visual de pulsado
         btnStart.style.transform = 'scale(0.95)';
         
         setTimeout(() => {
             btnStart.style.transform = '';
-            if (!storedUser) {
-                // Si no hay usuario, vamos a la pantalla de registro/identificación
-                window.location.href = 'register.html';
-            } else {
-                // Si ya existe, vamos directo a la acción
-                window.location.href = 'game.html';
-            }
+            // Siempre mandamos a la pantalla de poner nickname (login) para iniciar misión
+            window.location.href = 'login.html';
         }, 150);
     });
 
