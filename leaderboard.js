@@ -7,9 +7,9 @@ document.addEventListener('DOMContentLoaded', async () => {
     const container = document.getElementById('leaderboard-container');
 
     try {
-        // Fetch top 10 players by best_streak
+        // Fetch top 10 players by mejorRacha
         const querySnapshot = await db.collection('usuarios')
-            .orderBy('best_streak', 'desc')
+            .orderBy('mejorRacha', 'desc')
             .limit(10)
             .get();
 
@@ -23,7 +23,7 @@ document.addEventListener('DOMContentLoaded', async () => {
         let rank = 1;
         querySnapshot.forEach((doc) => {
             const data = doc.data();
-            const score = data.best_streak || 0;
+            const score = data.mejorRacha || 0;
             const avatar = data.avatar || 'avatar1.png';
             
             const item = document.createElement('div');
@@ -32,7 +32,7 @@ document.addEventListener('DOMContentLoaded', async () => {
             
             item.innerHTML = `
                 <div class="rank">#${rank}</div>
-                <img src="public/avatars/${avatar}" class="player-avatar" alt="Avatar">
+                <img src="avatars/${avatar}" class="player-avatar" alt="Avatar">
                 <div class="player-info">
                     <span class="player-name">${data.nickname || 'Anónimo'}</span>
                     <span class="player-meta">${data.grado}°${data.grupo}</span>
