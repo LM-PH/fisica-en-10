@@ -26,22 +26,21 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // Event Listeners for UI interaction
     btnStart.addEventListener('click', () => {
-        const storedUser = localStorage.getItem('user');
+        const storedUser = localStorage.getItem('user') || localStorage.getItem('nickname');
         
-        if (!storedUser) {
-            // No user found, send to registration
-            alert('¡Espera! Necesitas crear un perfil antes de la misión.');
-            window.location.href = 'register.html';
-        } else {
-            console.log('Iniciando juego para:', storedUser);
-            // Add a button press effect
-            btnStart.style.transform = 'scale(0.95)';
-            setTimeout(() => {
-                btnStart.style.transform = '';
-                // Redirect to game
+        // Efecto visual de pulsado
+        btnStart.style.transform = 'scale(0.95)';
+        
+        setTimeout(() => {
+            btnStart.style.transform = '';
+            if (!storedUser) {
+                // Si no hay usuario, vamos a la pantalla de registro/identificación
+                window.location.href = 'register.html';
+            } else {
+                // Si ya existe, vamos directo a la acción
                 window.location.href = 'game.html';
-            }, 100);
-        }
+            }
+        }, 150);
     });
 
     btnRegister.addEventListener('click', () => {
