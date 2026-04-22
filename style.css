@@ -447,7 +447,64 @@ body {
     transform: translateX(-5px);
 }
 
-.back-link { display: none; } /* Hide old links */
+/* Leaderboard Items */
+.leaderboard-list {
+    width: 100%;
+    max-width: 500px;
+    display: flex;
+    flex-direction: column;
+    gap: 0.8rem;
+    padding-bottom: 2rem;
+}
+
+.leaderboard-item {
+    background: var(--glass-bg);
+    border: 1px solid var(--glass-border);
+    padding: 0.8rem 1rem;
+    border-radius: 15px;
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    transition: transform 0.2s;
+    height: 60px; /* Tamaño fijo para consistencia */
+}
+
+.player-avatar-small {
+    width: 35px;
+    height: 35px;
+    border-radius: 50%;
+    border: 2px solid var(--neon-blue);
+    background: #000;
+}
+
+.rank-number {
+    font-size: 1.2rem;
+    font-weight: 900;
+    color: var(--neon-blue);
+    width: 30px;
+}
+
+.user-meta {
+    display: flex;
+    flex-direction: column;
+    flex: 1;
+}
+
+.user-nickname {
+    font-weight: 700;
+    font-size: 0.9rem;
+}
+
+.user-class {
+    font-size: 0.7rem;
+    opacity: 0.6;
+}
+
+.user-score {
+    font-family: 'Courier New', Courier, monospace;
+    font-weight: bold;
+    color: var(--neon-green);
+}
 
 /* Tabs */
 .tabs-container {

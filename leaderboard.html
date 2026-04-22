@@ -11,21 +11,20 @@
     <div class="glow-orb orb-top"></div>
     <div class="glow-orb orb-bottom"></div>
 
-    <main id="app">
+    <main id="app" style="height: auto; min-height: 100vh; padding-top: 80px;">
         <a href="index.html" class="back-btn">←</a>
-        <h2 class="view-title">HALL OF FAME</h2>
+        <h2 class="view-title" style="margin-bottom: 1rem;">HALL OF FAME</h2>
 
         <div class="tabs-container">
             <button class="tab-btn active" data-filter="global">GLOBAL</button>
-            <button class="tab-btn" data-filter="grado">MI GRADO</button>
-            <button class="tab-btn" data-filter="grupo">MI GRUPO</button>
+            <button class="tab-btn" data-filter="grado">GRADO</button>
+            <button class="tab-btn" data-filter="grupo">GRUPO</button>
         </div>
 
-        <div id="filter-display" style="font-size: 0.8rem; margin-bottom: 1rem; color: var(--neon-blue); font-weight: bold; opacity: 0.8;"></div>
+        <div id="filter-display" style="font-size: 0.8rem; margin-bottom: 1.5rem; color: var(--neon-blue); text-shadow: 0 0 5px var(--neon-blue);"></div>
 
         <div id="leaderboard-container" class="leaderboard-list">
-            <!-- Ranking se genera aquí -->
-            <div class="loading-spinner">Sincronizando con satélites...</div>
+            <div class="loading-spinner">Cargando base de datos...</div>
         </div>
     </main>
 

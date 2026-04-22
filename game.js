@@ -160,25 +160,28 @@ document.addEventListener('DOMContentLoaded', () => {
         timerText.textContent = '10s';
         timerText.style.color = 'var(--neon-blue)';
 
-        timerInterval = setInterval(() => {
-            timeLeft -= 0.1;
-            const percentage = (timeLeft / 10) * 100;
-            timerBar.style.width = `${percentage}%`;
+        // Pequeño delay interno para asegurar que el renderizado se actualizó
+        setTimeout(() => {
+            timerInterval = setInterval(() => {
+                timeLeft -= 0.1;
+                if (timeLeft < 0) timeLeft = 0; // Evitar negativos
 
-            // Update digital display
-            timerText.textContent = `${Math.ceil(timeLeft)}s`;
+                const percentage = (timeLeft / 10) * 100;
+                timerBar.style.width = `${percentage}%`;
+                timerText.textContent = `${Math.ceil(timeLeft)}s`;
 
-            if (timeLeft <= 3) {
-                timerBar.style.background = '#ff4444';
-                timerText.style.color = '#ff4444';
-            }
+                if (timeLeft <= 3) {
+                    timerBar.style.background = '#ff4444';
+                    timerText.style.color = '#ff4444';
+                }
 
-            if (timeLeft <= 0) {
-                clearInterval(timerInterval);
-                timerText.textContent = '0s';
-                onTimeOut();
-            }
-        }, 100);
+                if (timeLeft <= 0) {
+                    clearInterval(timerInterval);
+                    timerText.textContent = '0s';
+                    onTimeOut();
+                }
+            }, 100);
+        }, 50);
     };
 
     const loadQuestion = () => {
@@ -266,5 +269,7 @@ document.addEventListener('DOMContentLoaded', () => {
     document.getElementById('btn-home').onclick = () => window.location.href = 'index.html';
 
     // Start!
-    fetchQuestions();
+    setTimeout(() => {
+        fetchQuestions();
+    }, 500); // Pequeño retraso para asegurar que todo el DOM y Firebase estén listos
 });
