@@ -130,7 +130,17 @@ document.addEventListener('DOMContentLoaded', () => {
         if (!gameState.active) return;
         if (gameState.timer) clearInterval(gameState.timer);
 
-        const isCorrect = idx === gameState.currentQ.correcta;
+        const correctAns = gameState.currentQ.correcta;
+        let idxCorrecta = -1;
+        if (typeof correctAns === 'string') {
+            idxCorrecta = gameState.currentQ.opciones.findIndex(
+                opt => String(opt).trim().toLowerCase() === String(correctAns).trim().toLowerCase()
+            );
+        } else if (typeof correctAns === 'number') {
+            idxCorrecta = correctAns;
+        }
+
+        const isCorrect = idx === idxCorrecta;
         const all = document.querySelectorAll('.option-btn');
         all.forEach(b => b.style.pointerEvents = 'none');
 
@@ -148,7 +158,9 @@ document.addEventListener('DOMContentLoaded', () => {
             setTimeout(nextQuestion, 800);
         } else {
             btn.classList.add('wrong');
-            all[gameState.currentQ.correcta].classList.add('correct');
+            if (idxCorrecta !== -1 && all[idxCorrecta]) {
+                all[idxCorrecta].classList.add('correct');
+            }
             setTimeout(() => endMission('wrong'), 1000);
         }
     };
@@ -161,20 +173,20 @@ document.addEventListener('DOMContentLoaded', () => {
         try {
             const snap = await db.collection('preguntas').get();
             gameState.questions = snap.docs.map(d => ({ id: d.id, ...d.data() }));
-            
-            if (gameState.questions.length === 0) {
-                gameState.questions = [{
-                    id: 'default', pregunta: "¿Qué fuerza nos mantiene en la Tierra?",
-                    opciones: ["Gravedad", "Fricción", "Magnetismo", "Inercia"], correcta: 0
-                }];
-            }
-
-            els.startBtn.disabled = false;
-            els.startBtn.textContent = "INICIAR MISIÓN";
         } catch (e) {
-            console.error(e);
-            els.qText.textContent = "Error de conexión. Verifica tu internet.";
+            console.error("Error al conectar con base de datos:", e);
+            // El juego usará fallback si hay error y fallback vacío
         }
+        
+        if (!gameState.questions || gameState.questions.length === 0) {
+            gameState.questions = [{
+                id: 'default', pregunta: "¿Qué fuerza nos mantiene en la Tierra?",
+                opciones: ["Gravedad", "Fricción", "Magnetismo", "Inercia"], correcta: 0
+            }];
+        }
+
+        els.startBtn.disabled = false;
+        els.startBtn.textContent = "INICIAR MISIÓN";
     };
 
     els.startBtn.onclick = () => {
