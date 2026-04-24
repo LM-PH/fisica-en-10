@@ -26,34 +26,4 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 });
 
-// --- Lógica de Música de Fondo ---
-const bgMusic = new Audio('assets/audio/intro.mp3');
-bgMusic.loop = true;
-bgMusic.volume = 0.5;
 
-const musicToggle = document.getElementById('music-toggle');
-let isMuted = false;
-
-function toggleMusic() {
-    if (bgMusic.paused) {
-        bgMusic.play().catch(e => console.log("Interacción requerida"));
-        musicToggle.classList.remove('muted');
-        musicToggle.querySelector('.icon').innerText = '🔊';
-    } else {
-        bgMusic.pause();
-        musicToggle.classList.add('muted');
-        musicToggle.querySelector('.icon').innerText = '🔈';
-    }
-}
-
-// Iniciar con interacción
-document.addEventListener('click', () => {
-    if (bgMusic.paused && !isMuted) {
-        bgMusic.play().catch(e => console.log("Esperando clic..."));
-    }
-}, { once: true });
-
-musicToggle?.addEventListener('click', (e) => {
-    e.stopPropagation(); // Evitar que el clic del documento se active
-    toggleMusic();
-});
