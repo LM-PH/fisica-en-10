@@ -1,6 +1,10 @@
 // music.js - Lógica de Música de Fondo (Global)
 document.addEventListener('DOMContentLoaded', () => {
-    const bgMusic = new Audio('assets/audio/intro.mp3');
+    // Escoger la canción dependiendo de si estamos en el juego o no
+    const isGamePage = window.location.pathname.includes('game.html');
+    const trackFile = isGamePage ? 'assets/audio/gameplay.mp3' : 'assets/audio/intro.mp3';
+    
+    const bgMusic = new Audio(trackFile);
     bgMusic.loop = true;
     bgMusic.volume = 0.5;
 
