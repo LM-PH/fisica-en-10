@@ -6,9 +6,7 @@ service cloud.firestore {
       allow write: if false;
     }
     match /usuarios/{uid} {
-      allow read: if true;
-      allow create: if true;
-      allow update: if true;
+      allow read, create, update, delete: if true;
     }
     match /partidas/{id} {
       allow read: if true;
