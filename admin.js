@@ -106,7 +106,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 loadStudents();
             } catch (error) {
                 console.error("Error deleting user:", error);
-                alert("Error al eliminar el usuario.");
+                alert("Error al eliminar el usuario: " + error.message);
             }
         }
     };
@@ -143,7 +143,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 loadStudents();
             } catch (error) {
                 console.error("Error in bulk delete:", error);
-                alert("Error al realizar la eliminación masiva.");
+                alert("Error al realizar la eliminación masiva: " + error.message);
             }
         }
     });
