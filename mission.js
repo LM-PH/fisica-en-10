@@ -14,9 +14,10 @@ document.addEventListener('DOMContentLoaded', () => {
         timer: null,
         questions: [],
         currentQ: null,
-        lastId: null,
+        recentIds: [],          // historial de últimas preguntas mostradas
+        correctText: '',        // texto de la opción correcta (para comparar tras shuffle)
         endTime: 0,
-        missionEnded: false   // evitar doble guardado
+        missionEnded: false
     };
 
     // 3. Elementos del DOM
@@ -173,31 +174,74 @@ document.addEventListener('DOMContentLoaded', () => {
     // ─────────────────────────────────────────────────────────
     // 9. Siguiente pregunta
     // ─────────────────────────────────────────────────────────
+
+    // Mezcla un array con Fisher-Yates (in-place)
+    const shuffle = (arr) => {
+        for (let i = arr.length - 1; i > 0; i--) {
+            const j = Math.floor(Math.random() * (i + 1));
+            [arr[i], arr[j]] = [arr[j], arr[i]];
+        }
+        return arr;
+    };
+
     const nextQuestion = () => {
         if (!gameState.active) return;
 
+        // 1. Filtrar por dificultad progresiva
+        //    Si el pool de esa dificultad tiene < 4 preguntas, ampliar al pool completo
+        const HISTORY_SIZE = 6; // no repetir las últimas N preguntas
+
         let pool = gameState.questions.filter(q => {
-            if (gameState.streak < 3) return (q.dificultad || 'Fácil') === 'Fácil';
-            if (gameState.streak < 7) return (q.dificultad || 'Media') === 'Media';
+            if (gameState.streak < 3)  return (q.dificultad || 'Fácil') === 'Fácil';
+            if (gameState.streak < 7)  return (q.dificultad || 'Media') === 'Media';
             return (q.dificultad || 'Difícil') === 'Difícil';
         });
 
-        if (pool.length === 0) pool = gameState.questions;
-        let available = pool.filter(q => q.id !== gameState.lastId);
-        if (available.length === 0) available = pool;
+        // Si el pool de dificultad es muy pequeño, usar todas las preguntas
+        if (pool.length < 4) pool = [...gameState.questions];
 
+        // 2. Excluir preguntas recientes del historial
+        let available = pool.filter(q => !gameState.recentIds.includes(q.id));
+
+        // Si no quedan preguntas nuevas, limpiar historial y usar todo el pool
+        if (available.length === 0) {
+            gameState.recentIds = [];
+            available = [...pool];
+        }
+
+        // 3. Elegir pregunta al azar del pool disponible
         const q = available[Math.floor(Math.random() * available.length)];
         gameState.currentQ = q;
-        gameState.lastId   = q.id;
 
+        // Actualizar historial (máx HISTORY_SIZE)
+        gameState.recentIds.push(q.id);
+        if (gameState.recentIds.length > HISTORY_SIZE) {
+            gameState.recentIds.shift();
+        }
+
+        // 4. Guardar el TEXTO de la respuesta correcta antes de mezclar
+        //    (correcta puede ser índice numérico o texto string)
+        let correctText = '';
+        if (typeof q.correcta === 'number') {
+            correctText = String(q.opciones[q.correcta] || '').trim().toLowerCase();
+        } else {
+            correctText = String(q.correcta).trim().toLowerCase();
+        }
+        gameState.correctText = correctText;
+
+        // 5. Mezclar las opciones (anti-memorización de posición)
+        const shuffledOpts = shuffle([...q.opciones]);
+
+        // 6. Renderizar pregunta y opciones mezcladas
         els.qText.textContent = q.pregunta;
         els.options.innerHTML = '';
 
-        q.opciones.forEach((opt, i) => {
+        shuffledOpts.forEach((opt, i) => {
             const b = document.createElement('button');
-            b.className  = 'option-btn';
+            b.className   = 'option-btn';
             b.textContent = opt;
-            b.onclick = () => handleAnswer(i, b);
+            b.dataset.optText = String(opt).trim().toLowerCase();
+            b.onclick = () => handleAnswer(b);
             els.options.appendChild(b);
         });
 
@@ -207,27 +251,25 @@ document.addEventListener('DOMContentLoaded', () => {
     // ─────────────────────────────────────────────────────────
     // 10. Respuesta del alumno
     // ─────────────────────────────────────────────────────────
-    const handleAnswer = (idx, btn) => {
+    const handleAnswer = (btn) => {
         if (!gameState.active) return;
         if (gameState.timer) clearInterval(gameState.timer);
 
-        const correctAns = gameState.currentQ.correcta;
-        let idxCorrecta  = -1;
+        // Comparar por texto (funciona independientemente del orden mezclado)
+        const chosenText  = btn.dataset.optText || '';
+        const isCorrect   = chosenText === gameState.correctText;
 
-        if (typeof correctAns === 'string') {
-            idxCorrecta = gameState.currentQ.opciones.findIndex(
-                opt => String(opt).trim().toLowerCase() === String(correctAns).trim().toLowerCase()
-            );
-        } else if (typeof correctAns === 'number') {
-            idxCorrecta = correctAns;
-        }
-
-        const isCorrect = idx === idxCorrecta;
         const all = document.querySelectorAll('.option-btn');
         all.forEach(b => b.style.pointerEvents = 'none');
 
+        // Marcar cuál era la correcta (buscarla por texto)
+        all.forEach(b => {
+            if ((b.dataset.optText || '') === gameState.correctText) {
+                b.classList.add('correct');
+            }
+        });
+
         if (isCorrect) {
-            btn.classList.add('correct');
             gameState.streak++;
             gameState.totalCorrect++;
             els.streak.textContent = gameState.streak;
@@ -240,9 +282,6 @@ document.addEventListener('DOMContentLoaded', () => {
             setTimeout(nextQuestion, 800);
         } else {
             btn.classList.add('wrong');
-            if (idxCorrecta !== -1 && all[idxCorrecta]) {
-                all[idxCorrecta].classList.add('correct');
-            }
             setTimeout(() => endMission('wrong'), 1000);
         }
     };
@@ -306,6 +345,8 @@ document.addEventListener('DOMContentLoaded', () => {
         gameState.streak       = 0;
         gameState.totalCorrect = 0;
         gameState.missionEnded = false;
+        gameState.recentIds    = [];
+        gameState.correctText  = '';
         els.streak.textContent = '0';
         gameState.active       = true;
         nextQuestion();
