@@ -1,5 +1,7 @@
 {
-  "projects": {},
+  "projects": {
+    "default": "fisica-en-10"
+  },
   "targets": {},
   "etags": {}
 }
