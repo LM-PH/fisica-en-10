@@ -9,7 +9,7 @@ document.addEventListener('DOMContentLoaded', () => {
     let gameState = {
         streak: 0,
         totalCorrect: 0,
-        best: localStorage.getItem('best_streak') || 0,
+        best: parseInt(localStorage.getItem('best_streak')) || 0,
         active: false,
         timer: null,
         questions: [],
@@ -50,19 +50,33 @@ document.addEventListener('DOMContentLoaded', () => {
         
         els.gameOverModal.classList.remove('hidden');
         
+        // Always save if streak > 0
         if (gameState.streak > 0) saveResult(gameState.streak);
     };
 
     const saveResult = async (val) => {
         if (!db || nickname === 'Jugador') return;
+        const numVal = parseInt(val) || 0;
         try {
+            // Always log this game session
             await db.collection('partidas').add({
-                nickname, puntaje: val, fecha: new Date().toISOString()
+                nickname, puntaje: numVal, fecha: new Date().toISOString()
             });
-            if (val > gameState.best) {
-                await db.collection('usuarios').doc(nickname).update({ mejorRacha: val });
+
+            // Fetch current best from Firestore to ensure accuracy across devices
+            const userDoc = await db.collection('usuarios').doc(nickname).get();
+            if (userDoc.exists) {
+                const firestoreBest = parseInt(userDoc.data().mejorRacha) || 0;
+                if (numVal > firestoreBest) {
+                    await db.collection('usuarios').doc(nickname).update({ mejorRacha: numVal });
+                    localStorage.setItem('best_streak', numVal);
+                    gameState.best = numVal;
+                    els.best.textContent = numVal;
+                }
             }
-        } catch (e) {}
+        } catch (e) {
+            console.error('Error al guardar resultado:', e);
+        }
     };
 
     const runTimer = () => {
@@ -171,11 +185,24 @@ document.addEventListener('DOMContentLoaded', () => {
         els.startBtn.textContent = "CONECTANDO...";
         
         try {
+            // Load questions
             const snap = await db.collection('preguntas').get();
             gameState.questions = snap.docs.map(d => ({ id: d.id, ...d.data() }));
+
+            // Sync best streak from Firestore (source of truth)
+            if (nickname !== 'Jugador') {
+                const userDoc = await db.collection('usuarios').doc(nickname).get();
+                if (userDoc.exists) {
+                    const firestoreBest = parseInt(userDoc.data().mejorRacha) || 0;
+                    if (firestoreBest > gameState.best) {
+                        gameState.best = firestoreBest;
+                        localStorage.setItem('best_streak', firestoreBest);
+                        els.best.textContent = firestoreBest;
+                    }
+                }
+            }
         } catch (e) {
             console.error("Error al conectar con base de datos:", e);
-            // El juego usará fallback si hay error y fallback vacío
         }
         
         if (!gameState.questions || gameState.questions.length === 0) {

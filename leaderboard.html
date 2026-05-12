@@ -7,35 +7,155 @@
     <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;700;900&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="style.css?v=2.0">
     <style>
-        .rank-list { width: 100%; max-width: 480px; display: flex; flex-direction: column; gap: 0.7rem; padding-bottom: 3rem; }
-        .rank-row {
-            display: flex; align-items: center; gap: 0.8rem;
-            background: rgba(255,255,255,0.05);
-            border: 1px solid rgba(255,255,255,0.1);
-            border-radius: 14px; padding: 0.75rem 1rem;
+        body { overflow-y: auto; height: auto; min-height: 100vh; align-items: flex-start; }
+
+        #app {
+            height: auto;
+            min-height: 100vh;
+            padding: 5rem 1.5rem 4rem;
+            justify-content: flex-start;
+            max-width: 520px;
         }
-        .rank-pos { font-size: 1.4rem; font-weight: 900; color: #00f2ff; width: 36px; flex-shrink: 0; text-align: center; }
-        .rank-pos.gold   { color: #ffd700; }
+
+        /* Tabs */
+        .tabs {
+            display: flex;
+            gap: 0.5rem;
+            width: 100%;
+            margin-bottom: 1.5rem;
+        }
+        .tab {
+            flex: 1;
+            padding: 0.65rem 0.4rem;
+            border-radius: 12px;
+            border: 1px solid rgba(255,255,255,0.12);
+            background: rgba(255,255,255,0.04);
+            color: rgba(255,255,255,0.5);
+            font-family: inherit;
+            font-size: 0.72rem;
+            font-weight: 700;
+            letter-spacing: 0.5px;
+            cursor: pointer;
+            transition: all 0.25s;
+            text-transform: uppercase;
+        }
+        .tab.active {
+            background: rgba(0,242,255,0.12);
+            border-color: var(--neon-blue);
+            color: var(--neon-blue);
+            box-shadow: 0 0 12px rgba(0,242,255,0.2);
+        }
+        .tab:hover:not(.active) {
+            background: rgba(255,255,255,0.07);
+            color: rgba(255,255,255,0.8);
+        }
+
+        /* Filter label */
+        .filter-label {
+            font-size: 0.65rem;
+            color: var(--neon-blue);
+            opacity: 0.7;
+            letter-spacing: 2px;
+            text-transform: uppercase;
+            margin-bottom: 1rem;
+            text-align: center;
+            width: 100%;
+        }
+
+        /* Rank list */
+        .rank-list {
+            width: 100%;
+            display: flex;
+            flex-direction: column;
+            gap: 0.6rem;
+        }
+
+        .rank-row {
+            display: flex;
+            align-items: center;
+            gap: 0.8rem;
+            background: rgba(255,255,255,0.04);
+            border: 1px solid rgba(255,255,255,0.08);
+            border-radius: 14px;
+            padding: 0.8rem 1rem;
+            transition: transform 0.2s, border-color 0.2s;
+            animation: slide-up 0.3s ease-out both;
+        }
+        .rank-row:hover {
+            transform: translateX(4px);
+            border-color: rgba(0,242,255,0.25);
+        }
+        .rank-row.me {
+            border-color: rgba(57,255,20,0.4);
+            background: rgba(57,255,20,0.05);
+        }
+
+        .rank-pos {
+            font-size: 1.1rem;
+            font-weight: 900;
+            color: var(--neon-blue);
+            width: 32px;
+            flex-shrink: 0;
+            text-align: center;
+        }
+        .rank-pos.gold   { color: #ffd700; text-shadow: 0 0 10px rgba(255,215,0,0.5); }
         .rank-pos.silver { color: #c0c0c0; }
         .rank-pos.bronze { color: #cd7f32; }
-        .rank-avatar { width: 38px; height: 38px; border-radius: 50%; border: 2px solid #00f2ff; background: #111; flex-shrink: 0; }
+
+        .rank-avatar {
+            width: 38px; height: 38px;
+            border-radius: 50%;
+            border: 2px solid rgba(0,242,255,0.35);
+            object-fit: cover;
+            background: #111;
+            flex-shrink: 0;
+        }
+
         .rank-info { flex: 1; min-width: 0; }
-        .rank-name { font-weight: 700; font-size: 0.9rem; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-        .rank-sub  { font-size: 0.7rem; opacity: 0.6; }
-        .rank-pts  { font-weight: 900; color: #39ff14; font-size: 1rem; white-space: nowrap; }
-        .loading-msg { text-align: center; padding: 2rem; opacity: 0.7; font-style: italic; }
+        .rank-name {
+            font-weight: 700;
+            font-size: 0.88rem;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+        .rank-sub { font-size: 0.68rem; opacity: 0.55; margin-top: 1px; }
+
+        .rank-pts {
+            font-weight: 900;
+            color: var(--neon-green);
+            font-size: 1rem;
+            white-space: nowrap;
+            text-shadow: 0 0 8px rgba(57,255,20,0.4);
+        }
+
+        .empty-msg {
+            text-align: center;
+            padding: 3rem 1rem;
+            opacity: 0.5;
+            font-size: 0.9rem;
+        }
+        .empty-msg .emoji { font-size: 2.5rem; display: block; margin-bottom: 0.8rem; }
     </style>
 </head>
 <body>
     <div class="glow-orb orb-top"></div>
     <div class="glow-orb orb-bottom"></div>
 
-    <main id="app" style="padding-top: 80px; height: auto; min-height: 100vh;">
+    <main id="app">
         <a href="index.html" class="back-btn">←</a>
-        <h2 class="view-title" style="margin-bottom: 1.5rem;">🏆 RANKING GLOBAL</h2>
+        <h2 class="view-title" style="margin-bottom:1.5rem;">🏆 RANKING GLOBAL</h2>
 
-        <div id="list" class="rank-list">
-            <div class="loading-msg">Cargando clasificación...</div>
+        <div class="tabs">
+            <button class="tab active" id="tab-global">🌐 Escuela</button>
+            <button class="tab" id="tab-grado">📚 Mi Grado</button>
+            <button class="tab" id="tab-grupo">👥 Mi Grupo</button>
+        </div>
+
+        <p class="filter-label" id="filter-label">ESCUELA COMPLETA · TOP 50</p>
+
+        <div class="rank-list" id="list">
+            <div class="empty-msg"><span class="emoji">⏳</span>Cargando clasificación...</div>
         </div>
     </main>
 
@@ -44,54 +164,124 @@
     <script src="firebase-config.js"></script>
     <script src="music.js"></script>
     <script>
-        document.addEventListener('DOMContentLoaded', async () => {
-            if (!firebase.apps.length) firebase.initializeApp(window.firebaseConfig);
-            const db = firebase.firestore();
-            const list = document.getElementById('list');
+    document.addEventListener('DOMContentLoaded', async () => {
+        if (!firebase.apps.length) firebase.initializeApp(window.firebaseConfig);
+        const db = firebase.firestore();
 
+        const list          = document.getElementById('list');
+        const filterLabel   = document.getElementById('filter-label');
+        const tabGlobal     = document.getElementById('tab-global');
+        const tabGrado      = document.getElementById('tab-grado');
+        const tabGrupo      = document.getElementById('tab-grupo');
+
+        const currentNick = localStorage.getItem('user');
+        let myProfile = null;
+        let allUsers  = [];
+
+        // ------ Load current user profile ------
+        if (currentNick) {
             try {
-                const snap = await db.collection('usuarios')
-                    .orderBy('mejorRacha', 'desc')
-                    .limit(50)
-                    .get();
+                const doc = await db.collection('usuarios').doc(currentNick).get();
+                if (doc.exists) myProfile = doc.data();
+            } catch (e) { console.warn('No se pudo cargar perfil:', e); }
+        }
 
-                if (snap.empty) {
-                    list.innerHTML = '<div class="loading-msg">Nadie en el ranking aún. ¡Sé el primero!</div>';
-                    return;
-                }
-
-                list.innerHTML = '';
-                let pos = 0;
-                snap.forEach(doc => {
-                    pos++;
-                    const d = doc.data();
-                    const row = document.createElement('div');
-                    row.className = 'rank-row';
-
-                    let posClass = '';
-                    if (pos === 1) posClass = 'gold';
-                    else if (pos === 2) posClass = 'silver';
-                    else if (pos === 3) posClass = 'bronze';
-
-                    const avatar = d.avatar ? `avatars/${d.avatar}` : 'avatars/avatar1.png';
-                    const displayName = `${d.nickname || 'Anónimo'} (${d.nombre || 'Sin nombre'})`;
-
-                    row.innerHTML = `
-                        <div class="rank-pos ${posClass}">#${pos}</div>
-                        <img src="${avatar}" class="rank-avatar" onerror="this.src='avatars/avatar1.png'">
-                        <div class="rank-info">
-                            <div class="rank-name">${displayName}</div>
-                            <div class="rank-sub">${d.grado || '?'}º ${d.grupo || '?'}</div>
-                        </div>
-                        <div class="rank-pts">${d.mejorRacha || 0} pts</div>
-                    `;
-                    list.appendChild(row);
-                });
+        // ------ Fetch ALL users (sort in JS to avoid index requirement) ------
+        async function loadAll() {
+            list.innerHTML = '<div class="empty-msg"><span class="emoji">⏳</span>Escaneando base de datos...</div>';
+            try {
+                const snap = await db.collection('usuarios').get();
+                allUsers = [];
+                snap.forEach(doc => allUsers.push({ id: doc.id, ...doc.data() }));
+                // Sort by mejorRacha descending (numeric)
+                allUsers.sort((a, b) => (parseInt(b.mejorRacha) || 0) - (parseInt(a.mejorRacha) || 0));
+                render('global');
             } catch (err) {
                 console.error(err);
-                list.innerHTML = '<div class="loading-msg">Error al cargar datos. Revisa conexión.</div>';
+                list.innerHTML = '<div class="empty-msg"><span class="emoji">❌</span>Error al cargar datos. Revisa conexión.</div>';
             }
-        });
+        }
+
+        // ------ Render ------
+        function render(type) {
+            let data = [];
+
+            if (type === 'global') {
+                data = allUsers.slice(0, 50);
+                filterLabel.textContent = 'ESCUELA COMPLETA · TOP 50';
+            } else if (type === 'grado') {
+                if (!myProfile) {
+                    list.innerHTML = '<div class="empty-msg"><span class="emoji">🔐</span>Inicia sesión para ver el ranking de tu grado.</div>';
+                    filterLabel.textContent = '— SIN SESIÓN —';
+                    return;
+                }
+                data = allUsers.filter(u => String(u.grado) === String(myProfile.grado)).slice(0, 50);
+                filterLabel.textContent = `${myProfile.grado}° GRADO · TOP 50`;
+            } else if (type === 'grupo') {
+                if (!myProfile) {
+                    list.innerHTML = '<div class="empty-msg"><span class="emoji">🔐</span>Inicia sesión para ver el ranking de tu grupo.</div>';
+                    filterLabel.textContent = '— SIN SESIÓN —';
+                    return;
+                }
+                data = allUsers.filter(u =>
+                    String(u.grado) === String(myProfile.grado) && u.grupo === myProfile.grupo
+                ).slice(0, 50);
+                filterLabel.textContent = `${myProfile.grado}° ${myProfile.grupo} · RANKING DEL SALÓN`;
+            }
+
+            if (data.length === 0) {
+                list.innerHTML = '<div class="empty-msg"><span class="emoji">🔭</span>Nadie en este ranking aún. ¡Sé el primero!</div>';
+                return;
+            }
+
+            list.innerHTML = '';
+            data.forEach((u, i) => {
+                const pos  = i + 1;
+                const pts  = parseInt(u.mejorRacha) || 0;
+                const isMe = currentNick && (u.id === currentNick || u.nickname === currentNick);
+
+                let posClass = '';
+                if (pos === 1) posClass = 'gold';
+                else if (pos === 2) posClass = 'silver';
+                else if (pos === 3) posClass = 'bronze';
+
+                const avatar = u.avatar ? u.avatar : 'avatars/avatar1.png';
+
+                const row = document.createElement('div');
+                row.className = `rank-row${isMe ? ' me' : ''}`;
+                row.style.animationDelay = `${i * 0.04}s`;
+                row.innerHTML = `
+                    <div class="rank-pos ${posClass}">${pos === 1 ? '🥇' : pos === 2 ? '🥈' : pos === 3 ? '🥉' : '#' + pos}</div>
+                    <img src="${avatar}" class="rank-avatar" onerror="this.src='avatars/avatar1.png'" alt="avatar">
+                    <div class="rank-info">
+                        <div class="rank-name">${esc(u.nickname || 'Anónimo')}${isMe ? ' ⭐' : ''}</div>
+                        <div class="rank-sub">${esc(u.nombre || '')} · ${u.grado || '?'}° ${u.grupo || '?'}</div>
+                    </div>
+                    <div class="rank-pts">🔥 ${pts}</div>
+                `;
+                list.appendChild(row);
+            });
+        }
+
+        function esc(str) {
+            return String(str)
+                .replace(/&/g,'&amp;').replace(/</g,'&lt;')
+                .replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+        }
+
+        // ------ Tabs ------
+        function setActive(tab) {
+            [tabGlobal, tabGrado, tabGrupo].forEach(t => t.classList.remove('active'));
+            tab.classList.add('active');
+        }
+
+        tabGlobal.addEventListener('click', () => { setActive(tabGlobal); render('global'); });
+        tabGrado.addEventListener('click',  () => { setActive(tabGrado);  render('grado');  });
+        tabGrupo.addEventListener('click',  () => { setActive(tabGrupo);  render('grupo');  });
+
+        // ------ Initial load ------
+        await loadAll();
+    });
     </script>
 </body>
 </html>
