@@ -1,1 +1,15 @@
-node_modules
+# Dependencias
+node_modules/
+
+# Caché local de Firebase (no se sube al repo)
+.firebase/
+
+# Archivos del sistema macOS
+.DS_Store
+
+# Variables de entorno locales
+.env
+.env.local
+
+# Archivos temporales del editor
+*.log
