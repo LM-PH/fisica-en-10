@@ -1,0 +1,340 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Reset Rachas - Física en 10</title>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;700;900&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="style.css">
+    <style>
+        body { overflow-y: auto; height: auto; min-height: 100vh; align-items: flex-start; }
+        #app { height: auto; min-height: 100vh; padding: 3rem 1.5rem 4rem; justify-content: flex-start; max-width: 680px; }
+
+        .danger-card {
+            background: rgba(255, 68, 68, 0.05);
+            border: 1px solid rgba(255, 68, 68, 0.3);
+            border-radius: 24px;
+            padding: 2.5rem;
+            width: 100%;
+            margin-bottom: 1.5rem;
+        }
+        .danger-title {
+            font-size: 1.4rem;
+            font-weight: 900;
+            color: #ff6b6b;
+            margin-bottom: 0.5rem;
+            display: flex;
+            align-items: center;
+            gap: 0.6rem;
+        }
+        .danger-desc {
+            font-size: 0.85rem;
+            opacity: 0.65;
+            margin-bottom: 2rem;
+            line-height: 1.6;
+        }
+        .danger-desc strong { color: #ff6b6b; }
+
+        .confirm-box {
+            background: rgba(0,0,0,0.3);
+            border: 1px solid rgba(255,68,68,0.2);
+            border-radius: 14px;
+            padding: 1.2rem 1.5rem;
+            margin-bottom: 1.5rem;
+        }
+        .confirm-box label {
+            display: flex;
+            align-items: center;
+            gap: 0.8rem;
+            font-size: 0.85rem;
+            cursor: pointer;
+            user-select: none;
+        }
+        .confirm-box input[type="checkbox"] {
+            width: 18px; height: 18px;
+            accent-color: #ff4444;
+            cursor: pointer;
+            flex-shrink: 0;
+        }
+
+        .btn-reset {
+            width: 100%;
+            padding: 1.1rem;
+            background: rgba(255,68,68,0.12);
+            border: 2px solid #ff4444;
+            color: #ff6b6b;
+            border-radius: 14px;
+            font-family: inherit;
+            font-size: 1rem;
+            font-weight: 900;
+            cursor: pointer;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+            transition: all 0.3s;
+            opacity: 0.4;
+            pointer-events: none;
+        }
+        .btn-reset.enabled {
+            opacity: 1;
+            pointer-events: all;
+        }
+        .btn-reset.enabled:hover {
+            background: rgba(255,68,68,0.28);
+            box-shadow: 0 0 25px rgba(255,68,68,0.4);
+            transform: translateY(-2px);
+        }
+        .btn-reset:disabled { opacity: 0.5; cursor: not-allowed; transform: none; }
+
+        .progress-bar-wrap {
+            width: 100%;
+            height: 8px;
+            background: rgba(255,255,255,0.08);
+            border-radius: 4px;
+            margin: 1.5rem 0;
+            overflow: hidden;
+            display: none;
+        }
+        .progress-bar-fill {
+            height: 100%;
+            width: 0%;
+            background: linear-gradient(90deg, #ff4444, #ff9900);
+            border-radius: 4px;
+            transition: width 0.3s ease;
+        }
+
+        .log-box {
+            background: rgba(0,0,0,0.3);
+            border: 1px solid rgba(255,255,255,0.08);
+            border-radius: 12px;
+            padding: 1.2rem;
+            font-family: 'Courier New', monospace;
+            font-size: 0.78rem;
+            max-height: 300px;
+            overflow-y: auto;
+            display: none;
+            margin-top: 1.5rem;
+        }
+        .log-line { margin-bottom: 0.3rem; line-height: 1.4; }
+        .log-info    { color: rgba(255,255,255,0.6); }
+        .log-success { color: var(--neon-green); }
+        .log-warn    { color: #ffc800; }
+        .log-error   { color: #ff6b6b; }
+        .log-header  { color: var(--neon-blue); font-weight: bold; }
+
+        .summary-grid {
+            display: none;
+            grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+            gap: 1rem;
+            margin-top: 1.5rem;
+        }
+        .summary-card {
+            background: rgba(255,255,255,0.04);
+            border: 1px solid rgba(255,255,255,0.1);
+            border-radius: 14px;
+            padding: 1.2rem;
+            text-align: center;
+        }
+        .summary-card .s-label { font-size: 0.65rem; color: var(--neon-blue); text-transform: uppercase; letter-spacing: 1px; margin-bottom: 0.4rem; }
+        .summary-card .s-val   { font-size: 1.8rem; font-weight: 900; color: white; }
+
+        .done-banner {
+            display: none;
+            background: rgba(57,255,20,0.08);
+            border: 1px solid rgba(57,255,20,0.35);
+            border-radius: 14px;
+            padding: 1.2rem 1.5rem;
+            text-align: center;
+            color: var(--neon-green);
+            font-weight: 700;
+            margin-top: 1.5rem;
+            font-size: 0.95rem;
+        }
+    </style>
+</head>
+<body>
+    <div class="glow-orb orb-top"></div>
+    <div class="glow-orb orb-bottom"></div>
+
+    <main id="app">
+        <a href="admin.html" class="back-btn">←</a>
+
+        <h1 class="view-title" style="margin-bottom:0.4rem;">⚠️ Reset de Rachas</h1>
+        <p style="font-size:0.8rem;opacity:0.4;margin-bottom:2rem;text-align:center;">Zona de peligro · Física en 10</p>
+
+        <div class="danger-card">
+            <div class="danger-title">🗑 Reinicio General</div>
+            <p class="danger-desc">
+                Esta acción pondrá <strong>mejorRacha = 0</strong> en todos los alumnos registrados
+                y borrará todos los registros de la colección <strong>partidas</strong>.<br><br>
+                ⚠️ <strong>Esta acción es permanente e irreversible.</strong> Todos los alumnos comenzarán desde cero.
+            </p>
+
+            <div class="confirm-box">
+                <label>
+                    <input type="checkbox" id="chk1">
+                    Entiendo que se eliminarán todas las rachas actuales
+                </label>
+            </div>
+            <div class="confirm-box">
+                <label>
+                    <input type="checkbox" id="chk2">
+                    Entiendo que esta acción no se puede deshacer
+                </label>
+            </div>
+
+            <button class="btn-reset" id="btn-reset">
+                🗑 REINICIAR TODO A CERO
+            </button>
+
+            <div class="progress-bar-wrap" id="progress-wrap">
+                <div class="progress-bar-fill" id="progress-bar"></div>
+            </div>
+
+            <div class="summary-grid" id="summary-grid">
+                <div class="summary-card">
+                    <div class="s-label">Alumnos reseteados</div>
+                    <div class="s-val" id="s-usuarios">0</div>
+                </div>
+                <div class="summary-card">
+                    <div class="s-label">Partidas eliminadas</div>
+                    <div class="s-val" id="s-partidas">0</div>
+                </div>
+            </div>
+
+            <div class="log-box" id="log-box"></div>
+
+            <div class="done-banner" id="done-banner">
+                ✅ ¡Listo! Todos los alumnos empiezan desde 0. El ranking está limpio.
+            </div>
+        </div>
+
+        <a href="admin.html" style="color:rgba(255,255,255,0.3);font-size:0.8rem;text-decoration:none;">← Volver al Panel Admin</a>
+    </main>
+
+    <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore-compat.js"></script>
+    <script src="firebase-config.js"></script>
+    <script>
+    document.addEventListener('DOMContentLoaded', () => {
+        if (!firebase.apps.length) firebase.initializeApp(window.firebaseConfig);
+        const db = firebase.firestore();
+
+        const chk1        = document.getElementById('chk1');
+        const chk2        = document.getElementById('chk2');
+        const btnReset    = document.getElementById('btn-reset');
+        const logBox      = document.getElementById('log-box');
+        const progressWrap= document.getElementById('progress-wrap');
+        const progressBar = document.getElementById('progress-bar');
+        const summaryGrid = document.getElementById('summary-grid');
+        const doneBanner  = document.getElementById('done-banner');
+
+        // Habilitar botón solo si ambos checks están activos
+        function updateBtn() {
+            if (chk1.checked && chk2.checked) {
+                btnReset.classList.add('enabled');
+            } else {
+                btnReset.classList.remove('enabled');
+            }
+        }
+        chk1.addEventListener('change', updateBtn);
+        chk2.addEventListener('change', updateBtn);
+
+        function log(msg, type = 'info') {
+            const line = document.createElement('div');
+            line.className = `log-line log-${type}`;
+            const time = new Date().toLocaleTimeString('es-MX');
+            line.textContent = `[${time}] ${msg}`;
+            logBox.appendChild(line);
+            logBox.scrollTop = logBox.scrollHeight;
+        }
+
+        function setProgress(pct) {
+            progressBar.style.width = pct + '%';
+        }
+
+        // Borrar colección en lotes de 400
+        async function deleteCollection(collectionName) {
+            let deleted = 0;
+            let snap;
+            do {
+                snap = await db.collection(collectionName).limit(400).get();
+                if (snap.empty) break;
+                const batch = db.batch();
+                snap.forEach(doc => batch.delete(doc.ref));
+                await batch.commit();
+                deleted += snap.size;
+                log(`  Eliminadas ${deleted} partidas...`, 'info');
+            } while (!snap.empty);
+            return deleted;
+        }
+
+        btnReset.addEventListener('click', async () => {
+            if (!btnReset.classList.contains('enabled')) return;
+            if (!confirm('⛔ ÚLTIMA CONFIRMACIÓN\n\n¿Seguro que quieres reiniciar TODAS las rachas a 0?\nEsta acción no se puede deshacer.')) return;
+
+            btnReset.disabled    = true;
+            btnReset.textContent = '⏳ Procesando...';
+            logBox.innerHTML     = '';
+            logBox.style.display = 'block';
+            progressWrap.style.display = 'block';
+            summaryGrid.style.display  = 'none';
+            doneBanner.style.display   = 'none';
+            setProgress(0);
+
+            let totalUsuarios = 0;
+            let totalPartidas = 0;
+
+            try {
+                // ── Paso 1: Resetear mejorRacha en usuarios ──────────────
+                log('Leyendo lista de alumnos...', 'header');
+                const usuariosSnap = await db.collection('usuarios').get();
+                totalUsuarios = usuariosSnap.size;
+                log(`Se encontraron ${totalUsuarios} alumnos.`, 'info');
+                setProgress(10);
+
+                if (totalUsuarios > 0) {
+                    log('Reseteando mejorRacha a 0...', 'header');
+                    // Procesar en lotes de 400 (límite de Firestore batch = 500)
+                    const docs = usuariosSnap.docs;
+                    for (let i = 0; i < docs.length; i += 400) {
+                        const chunk = docs.slice(i, i + 400);
+                        const batch = db.batch();
+                        chunk.forEach(doc => batch.update(doc.ref, { mejorRacha: 0 }));
+                        await batch.commit();
+                        log(`  ${Math.min(i + 400, docs.length)}/${docs.length} alumnos reseteados`, 'success');
+                        setProgress(10 + (50 * Math.min(i + 400, docs.length) / docs.length));
+                    }
+                    log(`✅ ${totalUsuarios} alumnos reseteados a 0.`, 'success');
+                }
+
+                // ── Paso 2: Borrar colección partidas ────────────────────
+                setProgress(60);
+                log('Eliminando historial de partidas...', 'header');
+                totalPartidas = await deleteCollection('partidas');
+                log(`✅ ${totalPartidas} partidas eliminadas.`, 'success');
+                setProgress(100);
+
+                // ── Resumen ──────────────────────────────────────────────
+                log('─────────────────────────────────', 'header');
+                log(`✅ Reset completado.`, 'success');
+                log(`   Alumnos reseteados: ${totalUsuarios}`, 'success');
+                log(`   Partidas borradas:  ${totalPartidas}`, 'success');
+
+                document.getElementById('s-usuarios').textContent = totalUsuarios;
+                document.getElementById('s-partidas').textContent = totalPartidas;
+                summaryGrid.style.display = 'grid';
+                doneBanner.style.display  = 'block';
+
+                btnReset.textContent = '✅ Reset completado';
+
+            } catch (err) {
+                console.error(err);
+                log(`❌ ERROR: ${err.message}`, 'error');
+                btnReset.disabled    = false;
+                btnReset.textContent = '🗑 REINICIAR TODO A CERO';
+            }
+        });
+    });
+    </script>
+</body>
+</html>
