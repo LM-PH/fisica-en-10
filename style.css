@@ -188,6 +188,22 @@ body {
     transform: translateY(-3px);
 }
 
+.btn-admin {
+    background: transparent;
+    border: 2px solid rgba(180, 100, 255, 0.6);
+    color: rgba(200, 140, 255, 0.9);
+    font-size: 0.85rem;
+    letter-spacing: 2px;
+}
+
+.btn-admin:hover {
+    background: rgba(180, 100, 255, 0.12);
+    border-color: #b464ff;
+    color: #d090ff;
+    box-shadow: 0 0 20px rgba(180, 100, 255, 0.35);
+    transform: translateY(-3px);
+}
+
 /* Registration */
 .form-container {
     background: var(--glass-bg);
