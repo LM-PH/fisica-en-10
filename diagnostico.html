@@ -1,0 +1,85 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Diagnóstico - Física en 10</title>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;700;900&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="style.css">
+    <style>
+        body { overflow-y: auto; height: auto; min-height: 100vh; }
+        #app { height: auto; min-height: 100vh; padding: 3rem 1.5rem; justify-content: flex-start; max-width: 540px; }
+        .card {
+            width: 100%;
+            background: rgba(255,255,255,0.04);
+            border: 1px solid rgba(255,255,255,0.1);
+            border-radius: 20px;
+            padding: 1.8rem;
+            margin-bottom: 1.2rem;
+        }
+        .card-title { font-size: 0.7rem; color: var(--neon-blue); text-transform: uppercase; letter-spacing: 2px; margin-bottom: 1.2rem; }
+        .stat-row { display: flex; justify-content: space-between; align-items: center; padding: 0.6rem 0; border-bottom: 1px solid rgba(255,255,255,0.06); font-size: 0.9rem; }
+        .stat-row:last-child { border-bottom: none; }
+        .stat-row .val { font-weight: 900; color: var(--neon-green); font-size: 1.2rem; }
+        .loading { opacity: 0.5; font-size: 0.85rem; }
+    </style>
+</head>
+<body>
+    <div class="glow-orb orb-top"></div>
+    <div class="glow-orb orb-bottom"></div>
+    <main id="app">
+        <a href="index.html" class="back-btn">←</a>
+        <h1 class="view-title" style="margin-bottom:2rem;">🔬 Diagnóstico</h1>
+
+        <div class="card">
+            <div class="card-title">📚 Preguntas en base de datos</div>
+            <div id="q-stats"><p class="loading">Consultando Firestore...</p></div>
+        </div>
+
+        <div class="card">
+            <div class="card-title">👥 Alumnos registrados</div>
+            <div id="u-stats"><p class="loading">Consultando Firestore...</p></div>
+        </div>
+    </main>
+
+    <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore-compat.js"></script>
+    <script src="firebase-config.js"></script>
+    <script>
+    document.addEventListener('DOMContentLoaded', async () => {
+        if (!firebase.apps.length) firebase.initializeApp(window.firebaseConfig);
+        const db = firebase.firestore();
+
+        // ── Preguntas ──────────────────────────────────────────
+        try {
+            const snap = await db.collection('preguntas').get();
+            const byDif = {};
+            snap.forEach(d => {
+                const dif = d.data().dificultad || 'Sin clasificar';
+                byDif[dif] = (byDif[dif] || 0) + 1;
+            });
+
+            const container = document.getElementById('q-stats');
+            container.innerHTML = `
+                <div class="stat-row"><span>Total preguntas</span><span class="val">${snap.size}</span></div>
+                ${Object.entries(byDif).map(([k,v]) => `
+                    <div class="stat-row"><span>• ${k}</span><span class="val">${v}</span></div>
+                `).join('')}
+            `;
+        } catch (e) {
+            document.getElementById('q-stats').innerHTML = `<p style="color:#ff6b6b">Error: ${e.message}</p>`;
+        }
+
+        // ── Usuarios ───────────────────────────────────────────
+        try {
+            const snap = await db.collection('usuarios').get();
+            document.getElementById('u-stats').innerHTML = `
+                <div class="stat-row"><span>Total alumnos</span><span class="val">${snap.size}</span></div>
+            `;
+        } catch (e) {
+            document.getElementById('u-stats').innerHTML = `<p style="color:#ff6b6b">Error: ${e.message}</p>`;
+        }
+    });
+    </script>
+</body>
+</html>
