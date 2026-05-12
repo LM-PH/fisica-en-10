@@ -310,4 +310,99 @@ document.addEventListener('DOMContentLoaded', () => {
         document.body.appendChild(toast);
         setTimeout(() => toast.remove(), 3500);
     }
+
+    // =========================================================
+    // DANGER ZONE — Reset de rachas
+    // =========================================================
+    const dzToggle  = document.getElementById('dz-toggle');
+    const dzBody    = document.getElementById('dz-body');
+    const dzArrow   = document.getElementById('dz-arrow');
+    const dzChk1    = document.getElementById('dz-chk1');
+    const dzChk2    = document.getElementById('dz-chk2');
+    const dzBtn     = document.getElementById('btn-danger-reset');
+    const dzLog     = document.getElementById('dz-log');
+
+    // Toggle abrir/cerrar
+    dzToggle.addEventListener('click', () => {
+        const open = dzBody.style.display === 'block';
+        dzBody.style.display = open ? 'none' : 'block';
+        dzArrow.classList.toggle('open', !open);
+    });
+
+    // Activar botón solo si ambos checks marcados
+    function updateDzBtn() {
+        if (dzChk1 && dzChk2 && dzChk1.checked && dzChk2.checked) {
+            dzBtn.classList.add('enabled');
+        } else {
+            dzBtn.classList.remove('enabled');
+        }
+    }
+    if (dzChk1) dzChk1.addEventListener('change', updateDzBtn);
+    if (dzChk2) dzChk2.addEventListener('change', updateDzBtn);
+
+    function dzLogLine(msg, type = 'inf') {
+        const line = document.createElement('div');
+        line.className = `dz-log-line dz-${type}`;
+        line.textContent = `[${new Date().toLocaleTimeString('es-MX')}] ${msg}`;
+        dzLog.appendChild(line);
+        dzLog.scrollTop = dzLog.scrollHeight;
+    }
+
+    if (dzBtn) {
+        dzBtn.addEventListener('click', async () => {
+            if (!dzBtn.classList.contains('enabled')) return;
+            if (!confirm('⛔ ÚLTIMA CONFIRMACIÓN\n\n¿Resetear TODAS las rachas a 0 y borrar historial de partidas?\nEsta acción NO se puede deshacer.')) return;
+
+            dzBtn.disabled    = true;
+            dzBtn.textContent = '⏳ Procesando...';
+            dzLog.innerHTML   = '';
+            dzLog.style.display = 'block';
+
+            try {
+                // 1. Resetear mejorRacha en todos los usuarios
+                dzLogLine('Leyendo alumnos...', 'hdr');
+                const usuSnap = await db.collection('usuarios').get();
+                dzLogLine(`${usuSnap.size} alumnos encontrados.`, 'inf');
+
+                const docs = usuSnap.docs;
+                for (let i = 0; i < docs.length; i += 400) {
+                    const chunk = docs.slice(i, i + 400);
+                    const batch = db.batch();
+                    chunk.forEach(d => batch.update(d.ref, { mejorRacha: 0 }));
+                    await batch.commit();
+                    dzLogLine(`  ${Math.min(i + 400, docs.length)}/${docs.length} alumnos reseteados`, 'ok');
+                }
+                dzLogLine(`✅ Todas las rachas → 0`, 'ok');
+
+                // 2. Borrar colección partidas en lotes
+                dzLogLine('Eliminando historial de partidas...', 'hdr');
+                let totalPartidas = 0;
+                let snap;
+                do {
+                    snap = await db.collection('partidas').limit(400).get();
+                    if (snap.empty) break;
+                    const batch = db.batch();
+                    snap.forEach(d => batch.delete(d.ref));
+                    await batch.commit();
+                    totalPartidas += snap.size;
+                    dzLogLine(`  ${totalPartidas} partidas eliminadas...`, 'inf');
+                } while (!snap.empty);
+                dzLogLine(`✅ ${totalPartidas} partidas borradas.`, 'ok');
+
+                dzLogLine('─── Reset completado ───', 'hdr');
+                showToast(`✅ Listo. ${usuSnap.size} alumnos reseteados a 0.`, 'success');
+
+                // Recargar tabla
+                await loadStudents();
+                dzBtn.textContent = '✅ Reset completado';
+
+            } catch (err) {
+                console.error(err);
+                dzLogLine(`❌ ERROR: ${err.message}`, 'err');
+                dzBtn.disabled    = false;
+                dzBtn.textContent = '🗑 Reiniciar Todas las Rachas a 0';
+            }
+        });
+    }
 });
+

@@ -382,6 +382,112 @@
             transition: color 0.2s;
         }
         .back-link-bottom a:hover { color: var(--neon-blue); }
+
+        /* Danger Zone */
+        .danger-zone {
+            width: 100%;
+            background: rgba(255,68,68,0.04);
+            border: 1px solid rgba(255,68,68,0.25);
+            border-radius: 20px;
+            padding: 1.5rem;
+            margin-top: 1.5rem;
+        }
+        .danger-zone-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            cursor: pointer;
+            user-select: none;
+        }
+        .danger-zone-header h3 {
+            font-size: 0.75rem;
+            color: #ff6b6b;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+        }
+        .danger-zone-header .toggle-arrow {
+            color: #ff6b6b;
+            font-size: 0.8rem;
+            transition: transform 0.3s;
+        }
+        .danger-zone-header .toggle-arrow.open { transform: rotate(180deg); }
+        .danger-zone-body {
+            display: none;
+            margin-top: 1.2rem;
+        }
+        .danger-zone-body p {
+            font-size: 0.82rem;
+            opacity: 0.6;
+            line-height: 1.6;
+            margin-bottom: 1.2rem;
+        }
+        .danger-zone-body strong { color: #ff6b6b; }
+        .dz-confirm {
+            background: rgba(0,0,0,0.25);
+            border: 1px solid rgba(255,68,68,0.15);
+            border-radius: 10px;
+            padding: 0.8rem 1rem;
+            margin-bottom: 0.6rem;
+        }
+        .dz-confirm label {
+            display: flex;
+            align-items: center;
+            gap: 0.7rem;
+            font-size: 0.82rem;
+            cursor: pointer;
+        }
+        .dz-confirm input[type="checkbox"] {
+            width: 16px; height: 16px;
+            accent-color: #ff4444;
+            cursor: pointer;
+            flex-shrink: 0;
+        }
+        .btn-danger-reset {
+            width: 100%;
+            margin-top: 1rem;
+            padding: 0.9rem;
+            background: rgba(255,68,68,0.08);
+            border: 1.5px solid rgba(255,68,68,0.35);
+            color: rgba(255,107,107,0.5);
+            border-radius: 12px;
+            font-family: inherit;
+            font-size: 0.85rem;
+            font-weight: 900;
+            letter-spacing: 1.5px;
+            text-transform: uppercase;
+            cursor: not-allowed;
+            transition: all 0.3s;
+            pointer-events: none;
+            opacity: 0.5;
+        }
+        .btn-danger-reset.enabled {
+            color: #ff6b6b;
+            border-color: #ff4444;
+            opacity: 1;
+            cursor: pointer;
+            pointer-events: all;
+        }
+        .btn-danger-reset.enabled:hover {
+            background: rgba(255,68,68,0.22);
+            box-shadow: 0 0 20px rgba(255,68,68,0.35);
+        }
+        .dz-log {
+            display: none;
+            background: rgba(0,0,0,0.3);
+            border: 1px solid rgba(255,255,255,0.07);
+            border-radius: 10px;
+            padding: 1rem;
+            font-family: 'Courier New', monospace;
+            font-size: 0.73rem;
+            max-height: 200px;
+            overflow-y: auto;
+            margin-top: 1rem;
+        }
+        .dz-log-line { margin-bottom: 0.25rem; }
+        .dz-ok  { color: #39ff14; }
+        .dz-err { color: #ff6b6b; }
+        .dz-inf { color: rgba(255,255,255,0.55); }
+        .dz-hdr { color: #00f2ff; font-weight: bold; }
     </style>
 </head>
 <body>
@@ -526,6 +632,36 @@
                         </td></tr>
                     </tbody>
                 </table>
+            </div>
+        </div>
+
+        <!-- ===== DANGER ZONE ===== -->
+        <div class="danger-zone">
+            <div class="danger-zone-header" id="dz-toggle">
+                <h3>⚠️ Zona de Peligro</h3>
+                <span class="toggle-arrow" id="dz-arrow">▼</span>
+            </div>
+            <div class="danger-zone-body" id="dz-body">
+                <p>
+                    Reinicia <strong>todas las rachas a 0</strong> y borra el historial de partidas.<br>
+                    ⛔ <strong>Esta acción es permanente e irreversible.</strong>
+                </p>
+                <div class="dz-confirm">
+                    <label>
+                        <input type="checkbox" id="dz-chk1">
+                        Entiendo que se eliminarán todas las rachas actuales
+                    </label>
+                </div>
+                <div class="dz-confirm">
+                    <label>
+                        <input type="checkbox" id="dz-chk2">
+                        Entiendo que esta acción no se puede deshacer
+                    </label>
+                </div>
+                <button class="btn-danger-reset" id="btn-danger-reset">
+                    🗑 Reiniciar Todas las Rachas a 0
+                </button>
+                <div class="dz-log" id="dz-log"></div>
             </div>
         </div>
 
