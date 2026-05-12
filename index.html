@@ -13,6 +13,78 @@
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
     <link rel="apple-touch-icon" href="icon-512.png">
+    <style>
+        /* ── Pantalla principal: responsive para móviles ── */
+        body {
+            overflow-y: auto;
+            height: auto;
+            min-height: 100vh;
+            align-items: flex-start;
+        }
+
+        #app {
+            height: auto;
+            min-height: 100vh;
+            justify-content: center;
+            padding: 1.5rem 1.5rem 2rem;
+            gap: 0;
+        }
+
+        header {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            margin-bottom: 1.5rem;
+        }
+
+        /* Imagen del héroe más pequeña en móviles */
+        .hero-image-container {
+            width: 120px;
+            height: 120px;
+            margin-bottom: 0.8rem;
+        }
+
+        .hero-title {
+            font-size: clamp(2.2rem, 12vw, 4rem);
+            margin-top: 0;
+        }
+
+        .hero-subtitle {
+            font-size: clamp(0.75rem, 3.5vw, 1.2rem);
+            margin-top: 0.5rem;
+        }
+
+        /* Botones más compactos */
+        .controls {
+            width: 100%;
+            display: flex;
+            flex-direction: column;
+            gap: 0.75rem;
+            margin-bottom: 0;
+        }
+
+        .btn {
+            padding: 1rem;
+            font-size: clamp(0.85rem, 3.5vw, 1.1rem);
+        }
+
+        /* Pantallas muy pequeñas (iPhone SE: 667px alto) */
+        @media (max-height: 680px) {
+            .hero-image-container { width: 90px; height: 90px; }
+            .hero-title  { font-size: clamp(1.8rem, 10vw, 3rem); }
+            .controls    { gap: 0.55rem; }
+            .btn         { padding: 0.8rem; }
+            header       { margin-bottom: 1rem; }
+        }
+
+        @media (max-height: 580px) {
+            .hero-image-container { width: 70px; height: 70px; }
+            .hero-subtitle        { display: none; }
+            .btn                  { padding: 0.65rem; font-size: 0.82rem; }
+            .controls             { gap: 0.45rem; }
+            header                { margin-bottom: 0.8rem; }
+        }
+    </style>
 </head>
 <body>
     <!-- Botón de Música -->
