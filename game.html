@@ -6,6 +6,112 @@
     <title>Misión Física - Física en 10</title>
     <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;700;900&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="style.css?v=2.0">
+    <style>
+        /* ── Game page overrides ── */
+        body {
+            /* Allow scrolling if content overflows on very small screens */
+            overflow-y: auto;
+            height: auto;
+            min-height: 100vh;
+            align-items: flex-start;
+        }
+
+        #app {
+            height: auto;
+            min-height: 100vh;
+            justify-content: flex-start;
+            padding: 0.8rem 1rem 1.5rem;
+            gap: 0;
+        }
+
+        /* Header compacto */
+        .game-header {
+            width: 100%;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 0.5rem 0;
+            margin-bottom: 0.5rem;
+            flex-shrink: 0;
+        }
+
+        /* Timer más compacto */
+        .timer-container {
+            margin-bottom: 0.8rem;
+            flex-shrink: 0;
+        }
+
+        /* Sección pregunta + opciones: ocupa el espacio disponible */
+        .question-container {
+            width: 100%;
+            display: flex;
+            flex-direction: column;
+            gap: 0.7rem;
+            flex: 1;
+        }
+
+        /* Caja del texto de pregunta: más compacta */
+        #question-text {
+            background: rgba(255,255,255,0.04);
+            border: 1px solid rgba(255,255,255,0.1);
+            border-radius: 16px;
+            padding: 1rem 1.2rem;
+            font-size: 1rem;
+            font-weight: 700;
+            line-height: 1.4;
+            text-align: center;
+            min-height: 80px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            flex-shrink: 0;
+        }
+
+        /* Grid de opciones */
+        .options-grid {
+            display: flex;
+            flex-direction: column;
+            gap: 0.6rem;
+            width: 100%;
+        }
+
+        /* Botones de opción más compactos en móvil */
+        .option-btn {
+            padding: 0.9rem 1rem;
+            font-size: 0.95rem;
+            border-radius: 14px;
+            min-height: 52px;
+        }
+
+        /* Responsive para pantallas muy pequeñas */
+        @media (max-height: 680px) {
+            #question-text {
+                font-size: 0.9rem;
+                padding: 0.7rem 1rem;
+                min-height: 60px;
+            }
+            .option-btn {
+                padding: 0.7rem 0.8rem;
+                font-size: 0.88rem;
+                min-height: 44px;
+            }
+            .timer-container { margin-bottom: 0.5rem; }
+            .options-grid { gap: 0.45rem; }
+        }
+
+        @media (max-height: 580px) {
+            .option-btn {
+                padding: 0.55rem 0.8rem;
+                font-size: 0.82rem;
+                min-height: 38px;
+                border-radius: 10px;
+            }
+            #question-text {
+                font-size: 0.85rem;
+                min-height: 50px;
+            }
+        }
+    </style>
 </head>
 <body>
     <!-- Botón de Música -->
