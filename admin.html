@@ -13,230 +13,530 @@
             height: auto;
             min-height: 100vh;
             overflow-y: auto;
-            padding: 2rem 0;
+            padding: 0;
+            align-items: flex-start;
         }
-        #app {
-            max-width: 800px;
-            height: auto;
-            justify-content: flex-start;
-        }
-        .admin-container {
+
+        /* ---- LOGIN VIEW ---- */
+        #login-view {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            min-height: 100vh;
             width: 100%;
-            margin-top: 2rem;
+            padding: 2rem;
         }
-        .admin-table-container {
+        .login-card {
+            background: rgba(255,255,255,0.04);
+            border: 1px solid rgba(255,255,255,0.12);
+            backdrop-filter: blur(24px);
+            padding: 3rem 2.5rem;
+            border-radius: 28px;
             width: 100%;
-            overflow-x: auto;
-            background: var(--glass-bg);
-            border: 1px solid var(--glass-border);
+            max-width: 420px;
+            animation: slide-up 0.5s ease-out;
+            box-shadow: 0 0 60px rgba(0,242,255,0.08);
+        }
+        .login-icon {
+            font-size: 3rem;
+            text-align: center;
+            margin-bottom: 1rem;
+            filter: drop-shadow(0 0 12px rgba(0,242,255,0.6));
+        }
+        .login-card h2 {
+            text-align: center;
+            font-size: 1.6rem;
+            font-weight: 900;
+            margin-bottom: 0.4rem;
+            background: linear-gradient(to right, #fff, var(--neon-blue));
+            background-clip: text;
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+        .login-card .subtitle {
+            text-align: center;
+            font-size: 0.8rem;
+            color: var(--neon-blue);
+            opacity: 0.7;
+            margin-bottom: 2rem;
+            letter-spacing: 2px;
+            text-transform: uppercase;
+        }
+        .login-error {
+            background: rgba(255,68,68,0.12);
+            border: 1px solid rgba(255,68,68,0.4);
+            color: #ff6b6b;
+            padding: 0.8rem 1rem;
+            border-radius: 10px;
+            font-size: 0.85rem;
+            margin-top: 1rem;
+            text-align: center;
+            display: none;
+            animation: shake 0.4s ease;
+        }
+
+        /* ---- DASHBOARD ---- */
+        #dashboard-view {
+            display: none;
+            flex-direction: column;
+            width: 100%;
+            max-width: 1000px;
+            margin: 0 auto;
+            padding: 2rem 1.5rem 4rem;
+            animation: fadeIn 0.4s ease;
+        }
+        #dashboard-view.visible { display: flex; }
+
+        .admin-topbar {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 2rem;
+            flex-wrap: wrap;
+            gap: 1rem;
+        }
+        .admin-brand {
+            display: flex;
+            align-items: center;
+            gap: 0.8rem;
+        }
+        .admin-brand-icon {
+            font-size: 2rem;
+            filter: drop-shadow(0 0 8px rgba(0,242,255,0.6));
+        }
+        .admin-brand h1 {
+            font-size: 1.4rem;
+            font-weight: 900;
+            background: linear-gradient(to right, #fff, var(--neon-blue));
+            background-clip: text;
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            line-height: 1.1;
+        }
+        .admin-brand p {
+            font-size: 0.7rem;
+            color: var(--neon-blue);
+            opacity: 0.6;
+            letter-spacing: 2px;
+            text-transform: uppercase;
+        }
+        .logout-btn {
+            padding: 0.6rem 1.4rem;
+            background: rgba(255,68,68,0.08);
+            border: 1px solid rgba(255,68,68,0.35);
+            color: #ff6b6b;
+            border-radius: 12px;
+            cursor: pointer;
+            font-family: inherit;
+            font-size: 0.85rem;
+            font-weight: 700;
+            transition: all 0.3s;
+            letter-spacing: 1px;
+        }
+        .logout-btn:hover {
+            background: rgba(255,68,68,0.25);
+            box-shadow: 0 0 15px rgba(255,68,68,0.3);
+        }
+
+        /* Stats */
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+            gap: 1rem;
+            margin-bottom: 2rem;
+        }
+        .stat-card {
+            background: rgba(255,255,255,0.04);
+            border: 1px solid rgba(255,255,255,0.1);
+            border-radius: 18px;
+            padding: 1.4rem 1rem;
+            text-align: center;
+            transition: transform 0.2s;
+        }
+        .stat-card:hover { transform: translateY(-3px); }
+        .stat-card .stat-icon { font-size: 1.6rem; margin-bottom: 0.5rem; }
+        .stat-card .stat-label {
+            font-size: 0.65rem;
+            color: var(--neon-blue);
+            text-transform: uppercase;
+            letter-spacing: 1.5px;
+            margin-bottom: 0.3rem;
+        }
+        .stat-card .stat-value {
+            font-size: 2rem;
+            font-weight: 900;
+            color: white;
+            line-height: 1;
+        }
+
+        /* Filters */
+        .filters-section {
+            background: rgba(255,255,255,0.04);
+            border: 1px solid rgba(255,255,255,0.1);
             border-radius: 20px;
-            backdrop-filter: blur(10px);
-            margin-top: 2rem;
+            padding: 1.5rem;
+            margin-bottom: 1.5rem;
         }
+        .filters-section h3 {
+            font-size: 0.7rem;
+            color: var(--neon-blue);
+            text-transform: uppercase;
+            letter-spacing: 2px;
+            margin-bottom: 1rem;
+        }
+        .filter-row {
+            display: flex;
+            gap: 0.8rem;
+            flex-wrap: wrap;
+            align-items: center;
+        }
+        .filter-select-wrap {
+            flex: 1;
+            min-width: 130px;
+        }
+        .filter-select-wrap label {
+            display: block;
+            font-size: 0.65rem;
+            color: var(--neon-blue);
+            opacity: 0.7;
+            text-transform: uppercase;
+            margin-bottom: 0.3rem;
+            letter-spacing: 1px;
+        }
+        .filter-select-wrap select {
+            width: 100%;
+            background: rgba(255,255,255,0.06);
+            border: 1px solid rgba(255,255,255,0.15);
+            color: white;
+            font-family: inherit;
+            font-size: 0.9rem;
+            padding: 0.7rem 1rem;
+            border-radius: 10px;
+            outline: none;
+            cursor: pointer;
+            transition: border-color 0.2s;
+            appearance: none;
+            background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8' viewBox='0 0 12 8'%3E%3Cpath d='M1 1l5 5 5-5' stroke='%2300f2ff' stroke-width='1.5' fill='none' stroke-linecap='round'/%3E%3C/svg%3E");
+            background-repeat: no-repeat;
+            background-position: right 12px center;
+            padding-right: 36px;
+        }
+        .filter-select-wrap select:focus {
+            border-color: var(--neon-blue);
+            box-shadow: 0 0 0 2px rgba(0,242,255,0.15);
+        }
+        .filter-select-wrap select option { background: #0a0b1e; }
+        .filter-actions {
+            display: flex;
+            gap: 0.6rem;
+            flex-wrap: wrap;
+            align-items: flex-end;
+        }
+        .btn-filter {
+            padding: 0.7rem 1.4rem;
+            border-radius: 10px;
+            border: none;
+            font-family: inherit;
+            font-size: 0.8rem;
+            font-weight: 700;
+            cursor: pointer;
+            transition: all 0.25s;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+        .btn-filter-apply {
+            background: rgba(0,242,255,0.12);
+            border: 1px solid var(--neon-blue);
+            color: var(--neon-blue);
+        }
+        .btn-filter-apply:hover {
+            background: rgba(0,242,255,0.25);
+            box-shadow: 0 0 15px rgba(0,242,255,0.3);
+        }
+        .btn-filter-reset {
+            background: rgba(255,255,255,0.05);
+            border: 1px solid rgba(255,255,255,0.15);
+            color: rgba(255,255,255,0.6);
+        }
+        .btn-filter-reset:hover {
+            background: rgba(255,255,255,0.1);
+        }
+        .btn-filter-delete {
+            background: rgba(255,68,68,0.1);
+            border: 1px solid rgba(255,68,68,0.4);
+            color: #ff6b6b;
+        }
+        .btn-filter-delete:hover {
+            background: rgba(255,68,68,0.25);
+            box-shadow: 0 0 15px rgba(255,68,68,0.3);
+        }
+
+        /* Table */
+        .table-section {
+            background: rgba(255,255,255,0.03);
+            border: 1px solid rgba(255,255,255,0.1);
+            border-radius: 20px;
+            overflow: hidden;
+        }
+        .table-header-bar {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 1.2rem 1.5rem;
+            border-bottom: 1px solid rgba(255,255,255,0.08);
+            flex-wrap: wrap;
+            gap: 0.8rem;
+        }
+        .table-header-bar h3 {
+            font-size: 0.8rem;
+            color: white;
+            font-weight: 700;
+            letter-spacing: 1px;
+            text-transform: uppercase;
+        }
+        #result-count {
+            font-size: 0.75rem;
+            color: var(--neon-blue);
+            opacity: 0.8;
+        }
+        .table-wrapper { overflow-x: auto; }
         table {
             width: 100%;
             border-collapse: collapse;
             text-align: left;
+            min-width: 600px;
         }
-        th, td {
-            padding: 1.2rem;
-            border-bottom: 1px solid var(--glass-border);
-        }
-        th {
-            color: var(--neon-blue);
-            text-transform: uppercase;
-            font-size: 0.8rem;
-            letter-spacing: 1px;
-        }
-        tr:last-child td {
-            border-bottom: none;
-        }
-        .delete-btn {
-            background: rgba(255, 68, 68, 0.1);
-            color: var(--neon-red);
-            border: 1px solid var(--neon-red);
-            padding: 0.5rem 1rem;
-            border-radius: 8px;
-            cursor: pointer;
-            font-size: 0.8rem;
-            transition: all 0.2s;
-        }
-        .delete-btn:hover {
-            background: var(--neon-red);
-            color: white;
-            box-shadow: 0 0 10px var(--neon-red);
-        }
-        .bulk-actions {
-            display: flex;
-            gap: 1rem;
-            margin-bottom: 1rem;
-            flex-wrap: wrap;
-            justify-content: center;
-        }
-        .filter-group {
-            display: flex;
-            align-items: center;
-            gap: 0.5rem;
-            background: var(--glass-bg);
-            padding: 0.5rem 1rem;
-            border-radius: 12px;
-            border: 1px solid var(--glass-border);
-        }
-        .filter-group select {
-            background: transparent;
-            border: none;
-            color: white;
-            font-family: inherit;
-            outline: none;
-            cursor: pointer;
-        }
-        .admin-header {
-            margin-bottom: 3rem;
-        }
-        .stats-summary {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
-            gap: 1rem;
-            margin-bottom: 2rem;
-            width: 100%;
-        }
-        .stat-card {
-            background: var(--glass-bg);
-            border: 1px solid var(--glass-border);
-            padding: 1.5rem;
-            border-radius: 16px;
-            text-align: center;
-        }
-        .stat-card h3 {
+        thead th {
+            padding: 1rem 1.2rem;
             font-size: 0.7rem;
             color: var(--neon-blue);
             text-transform: uppercase;
-            margin-bottom: 0.5rem;
+            letter-spacing: 1.5px;
+            border-bottom: 1px solid rgba(255,255,255,0.08);
+            white-space: nowrap;
         }
-        .stat-card p {
-            font-size: 1.8rem;
-            font-weight: 900;
-            color: white;
+        tbody tr {
+            transition: background 0.2s;
+            border-bottom: 1px solid rgba(255,255,255,0.05);
         }
-        .logout-btn {
-            position: absolute;
-            top: 20px;
-            right: 20px;
-            padding: 0.6rem 1.2rem;
-            background: rgba(255, 255, 255, 0.05);
-            border: 1px solid var(--glass-border);
-            color: white;
-            border-radius: 10px;
-            cursor: pointer;
-            transition: all 0.3s;
+        tbody tr:last-child { border-bottom: none; }
+        tbody tr:hover { background: rgba(0,242,255,0.04); }
+        tbody td { padding: 1rem 1.2rem; vertical-align: middle; }
+        .student-info { display: flex; align-items: center; gap: 0.8rem; }
+        .student-avatar {
+            width: 36px; height: 36px;
+            border-radius: 50%;
+            border: 1.5px solid rgba(0,242,255,0.4);
+            object-fit: cover;
+            flex-shrink: 0;
         }
-        .logout-btn:hover {
-            background: rgba(255, 68, 68, 0.2);
-            border-color: var(--neon-red);
-        }
-        #login-view {
-            max-width: 400px;
-            margin: 10vh auto;
-        }
-        .group-badge {
-            padding: 2px 8px;
-            border-radius: 4px;
-            background: rgba(0, 242, 255, 0.1);
-            color: var(--neon-blue);
+        .student-name { font-weight: 700; font-size: 0.9rem; }
+        .student-nick { font-size: 0.7rem; opacity: 0.5; }
+        .grade-badge {
+            display: inline-block;
+            padding: 3px 10px;
+            border-radius: 6px;
             font-size: 0.75rem;
-            font-weight: bold;
+            font-weight: 700;
+            background: rgba(0,242,255,0.1);
+            color: var(--neon-blue);
+            border: 1px solid rgba(0,242,255,0.25);
+            white-space: nowrap;
         }
+        .score-value { color: var(--neon-green); font-weight: 700; font-size: 1rem; }
+        .delete-btn {
+            padding: 0.45rem 0.9rem;
+            background: rgba(255,68,68,0.08);
+            border: 1px solid rgba(255,68,68,0.3);
+            color: #ff6b6b;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 0.78rem;
+            font-family: inherit;
+            font-weight: 700;
+            transition: all 0.2s;
+            white-space: nowrap;
+        }
+        .delete-btn:hover {
+            background: rgba(255,68,68,0.25);
+            box-shadow: 0 0 10px rgba(255,68,68,0.3);
+            transform: scale(1.05);
+        }
+        .empty-state {
+            text-align: center;
+            padding: 3rem 1rem;
+            opacity: 0.5;
+        }
+        .empty-state .empty-icon { font-size: 3rem; margin-bottom: 1rem; }
+        .empty-state p { font-size: 0.9rem; }
+
+        .back-link-bottom {
+            margin-top: 1rem;
+            text-align: center;
+        }
+        .back-link-bottom a {
+            color: rgba(255,255,255,0.35);
+            font-size: 0.8rem;
+            text-decoration: none;
+            transition: color 0.2s;
+        }
+        .back-link-bottom a:hover { color: var(--neon-blue); }
     </style>
 </head>
 <body>
     <div class="glow-orb orb-top"></div>
     <div class="glow-orb orb-bottom"></div>
 
-    <a href="index.html" class="back-btn">←</a>
+    <!-- ======================== LOGIN ======================== -->
+    <div id="login-view">
+        <a href="index.html" class="back-btn" style="position:fixed;top:20px;left:20px;">←</a>
+        <div class="login-card">
+            <div class="login-icon">🛡️</div>
+            <h2>Panel Administrativo</h2>
+            <p class="subtitle">Física en 10 · Acceso Restringido</p>
 
-    <div id="app">
-        <!-- Login View -->
-        <div id="login-view" class="form-container">
-            <h2 class="view-title">Acceso Admin</h2>
             <form id="admin-login-form">
                 <div class="form-group">
-                    <label>Correo Electrónico</label>
-                    <input type="email" id="admin-email" class="form-control" required placeholder="zlagustin10@gmail.com">
+                    <label for="admin-email">Correo Electrónico</label>
+                    <input type="email" id="admin-email" class="form-control"
+                           required placeholder="correo@ejemplo.com" autocomplete="email">
                 </div>
-                <div class="form-group">
-                    <label>Contraseña</label>
-                    <input type="password" id="admin-password" class="form-control" required placeholder="••••••••">
+                <div class="form-group" style="margin-bottom:1.8rem;">
+                    <label for="admin-password">Contraseña</label>
+                    <div style="position:relative;">
+                        <input type="password" id="admin-password" class="form-control"
+                               required placeholder="••••••••" autocomplete="current-password"
+                               style="padding-right:3rem;">
+                        <button type="button" id="toggle-pass"
+                                style="position:absolute;right:12px;top:50%;transform:translateY(-50%);background:none;border:none;color:rgba(255,255,255,0.4);cursor:pointer;font-size:1.1rem;">
+                            👁
+                        </button>
+                    </div>
                 </div>
-                <button type="submit" class="btn btn-primary">Entrar al Sistema</button>
+                <button type="submit" class="btn btn-primary" id="login-submit-btn">
+                    Acceder al Sistema
+                </button>
+                <div id="login-error" class="login-error">
+                    ⚠️ Credenciales incorrectas. Acceso denegado.
+                </div>
             </form>
         </div>
+    </div>
 
-        <!-- Dashboard View (Hidden by default) -->
-        <div id="dashboard-view" class="admin-container hidden">
-            <button id="logout-btn" class="logout-btn">Cerrar Sesión</button>
-            
-            <div class="admin-header">
-                <h1 class="view-title">Panel de Control</h1>
-                <p class="hero-subtitle">Gestión de Alumnos</p>
-            </div>
-
-            <div class="stats-summary">
-                <div class="stat-card">
-                    <h3>Total Alumnos</h3>
-                    <p id="total-students">0</p>
-                </div>
-                <div class="stat-card">
-                    <h3>Grados</h3>
-                    <p id="total-grades">-</p>
+    <!-- ======================== DASHBOARD ======================== -->
+    <div id="dashboard-view">
+        <div class="admin-topbar">
+            <div class="admin-brand">
+                <span class="admin-brand-icon">⚛️</span>
+                <div>
+                    <h1>Panel de Control</h1>
+                    <p>Gestión de Alumnos · Física en 10</p>
                 </div>
             </div>
+            <button id="logout-btn" class="logout-btn">🚪 Cerrar Sesión</button>
+        </div>
 
-            <div class="bulk-actions">
-                <div class="filter-group">
-                    <label>Eliminar por Grupo:</label>
-                    <select id="delete-grade-select">
-                        <option value="">Grado</option>
-                        <option value="1">1°</option>
-                        <option value="2">2°</option>
-                        <option value="3">3°</option>
+        <!-- Stats -->
+        <div class="stats-grid">
+            <div class="stat-card">
+                <div class="stat-icon">👨‍🚀</div>
+                <div class="stat-label">Total Alumnos</div>
+                <div class="stat-value" id="stat-total">0</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-icon">📚</div>
+                <div class="stat-label">Grados Activos</div>
+                <div class="stat-value" id="stat-grades">0</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-icon">👥</div>
+                <div class="stat-label">Grupos</div>
+                <div class="stat-value" id="stat-groups">0</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-icon">🏆</div>
+                <div class="stat-label">Mejor Racha</div>
+                <div class="stat-value" id="stat-best">0</div>
+            </div>
+        </div>
+
+        <!-- Filters -->
+        <div class="filters-section">
+            <h3>🔍 Filtros y Acciones Masivas</h3>
+            <div class="filter-row">
+                <div class="filter-select-wrap">
+                    <label>Grado</label>
+                    <select id="filter-grade">
+                        <option value="">Todos los grados</option>
+                        <option value="1">1° Grado</option>
+                        <option value="2">2° Grado</option>
+                        <option value="3">3° Grado</option>
                     </select>
-                    <select id="delete-group-select">
-                        <option value="">Grupo</option>
-                        <option value="A">A</option>
-                        <option value="B">B</option>
-                        <option value="C">C</option>
-                        <option value="D">D</option>
-                        <option value="E">E</option>
-                        <option value="F">F</option>
+                </div>
+                <div class="filter-select-wrap">
+                    <label>Grupo</label>
+                    <select id="filter-group">
+                        <option value="">Todos los grupos</option>
+                        <option value="A">Grupo A</option>
+                        <option value="B">Grupo B</option>
+                        <option value="C">Grupo C</option>
+                        <option value="D">Grupo D</option>
+                        <option value="E">Grupo E</option>
+                        <option value="F">Grupo F</option>
                     </select>
-                    <button id="bulk-delete-btn" class="delete-btn">Eliminar Grupo</button>
+                </div>
+                <div class="filter-actions">
+                    <button class="btn-filter btn-filter-apply" id="btn-apply-filter">
+                        Filtrar
+                    </button>
+                    <button class="btn-filter btn-filter-reset" id="btn-reset-filter">
+                        Limpiar
+                    </button>
+                    <button class="btn-filter btn-filter-delete" id="btn-bulk-delete">
+                        🗑 Eliminar Filtrados
+                    </button>
                 </div>
             </div>
+        </div>
 
-            <div class="admin-table-container">
-                <table id="students-table">
+        <!-- Table -->
+        <div class="table-section">
+            <div class="table-header-bar">
+                <h3>📋 Lista de Alumnos Registrados</h3>
+                <span id="result-count">Cargando...</span>
+            </div>
+            <div class="table-wrapper">
+                <table>
                     <thead>
                         <tr>
                             <th>Alumno</th>
-                            <th>Grado/Grupo</th>
+                            <th>Grado / Grupo</th>
                             <th>Correo</th>
                             <th>Mejor Racha</th>
-                            <th>Acciones</th>
+                            <th>Acción</th>
                         </tr>
                     </thead>
                     <tbody id="students-body">
-                        <!-- Content loaded via JS -->
+                        <tr><td colspan="5">
+                            <div class="empty-state">
+                                <div class="empty-icon">⏳</div>
+                                <p>Cargando alumnos...</p>
+                            </div>
+                        </td></tr>
                     </tbody>
                 </table>
             </div>
+        </div>
+
+        <div class="back-link-bottom">
+            <a href="index.html">← Volver al inicio</a>
         </div>
     </div>
 
     <!-- Firebase SDKs -->
     <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore-compat.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-auth-compat.js"></script>
-    
     <script src="firebase-config.js"></script>
     <script src="admin.js"></script>
 </body>
