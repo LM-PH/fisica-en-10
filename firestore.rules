@@ -10,7 +10,7 @@ service cloud.firestore {
     }
     match /partidas/{id} {
       allow read: if true;
-      allow create: if true;
+      allow create, delete: if true;
     }
   }
 }
