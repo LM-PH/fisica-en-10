@@ -153,6 +153,13 @@
         <div class="timer-container">
             <div id="timer-bar" class="timer-bar"></div>
             <span id="timer-text" class="timer-text">10s</span>
+            <span id="q-progress" style="
+                font-size:0.65rem;
+                color:rgba(0,242,255,0.6);
+                font-weight:700;
+                letter-spacing:1px;
+                margin-left:0.8rem;
+            ">0 / 0 ✓</span>
         </div>
 
         <section class="question-container border-glow">
@@ -167,6 +174,12 @@
     <div id="game-over-modal" class="modal-overlay hidden">
         <div class="modal-content border-glow">
             <h2>¡MISIÓN TERMINADA!</h2>
+            <p class="modal-subtitle" style="
+                font-size:0.9rem;
+                color:var(--neon-green);
+                margin-top:0.3rem;
+                min-height:1.2em;
+            "></p>
             <div class="final-stats">
                 <div class="final-stat">
                     <span>Correctas:</span>

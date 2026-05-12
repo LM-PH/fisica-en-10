@@ -14,8 +14,9 @@ document.addEventListener('DOMContentLoaded', () => {
         timer: null,
         questions: [],
         currentQ: null,
-        recentIds: [],          // historial de últimas preguntas mostradas
-        correctText: '',        // texto de la opción correcta (para comparar tras shuffle)
+        recentIds: [],      // historial anti-repetición reciente
+        correctIds: [],     // preguntas ya respondidas correctamente en esta sesión
+        correctText: '',    // texto de la respuesta correcta (tras shuffle)
         endTime: 0,
         missionEnded: false
     };
@@ -81,10 +82,23 @@ document.addEventListener('DOMContentLoaded', () => {
         gameState.active = false;
         if (gameState.timer) clearInterval(gameState.timer);
 
-        const title = els.gameOverModal.querySelector('h2');
-        if (reason === 'timeout')    title.textContent = '¡TIEMPO AGOTADO!';
-        else if (reason === 'away')  title.textContent = '¡SALISTE DE LA MISIÓN!';
-        else                         title.textContent = '¡MISIÓN FALLIDA!';
+        const title    = els.gameOverModal.querySelector('h2');
+        const subtitle = els.gameOverModal.querySelector('.modal-subtitle');
+
+        if (reason === 'perfect') {
+            title.textContent = '🏆 ¡RACHA MÁXIMA!';
+            if (subtitle) subtitle.textContent = '¡Respondiste todas las preguntas correctamente!';
+            // Ocultar botón reintentar y mostrar solo inicio
+            const btnRestart = document.getElementById('btn-restart');
+            if (btnRestart) btnRestart.style.display = 'none';
+        } else {
+            const btnRestart = document.getElementById('btn-restart');
+            if (btnRestart) btnRestart.style.display = '';
+            if (reason === 'timeout')   title.textContent = '¡TIEMPO AGOTADO!';
+            else if (reason === 'away') title.textContent = '¡SALISTE DE LA MISIÓN!';
+            else                        title.textContent = '¡MISIÓN FALLIDA!';
+            if (subtitle) subtitle.textContent = '';
+        }
 
         els.finalScore.textContent  = gameState.totalCorrect;
         els.finalStreak.textContent = gameState.streak;
@@ -187,40 +201,43 @@ document.addEventListener('DOMContentLoaded', () => {
     const nextQuestion = () => {
         if (!gameState.active) return;
 
-        // 1. Filtrar por dificultad progresiva
-        //    Si el pool de esa dificultad tiene < 4 preguntas, ampliar al pool completo
-        const HISTORY_SIZE = 6; // no repetir las últimas N preguntas
+        // 1. Excluir preguntas ya contestadas correctamente en esta sesión
+        const unanswered = gameState.questions.filter(
+            q => !gameState.correctIds.includes(q.id)
+        );
 
-        let pool = gameState.questions.filter(q => {
+        // 🏆 Si no quedan preguntas sin contestar → ¡RACHA MÁXIMA!
+        if (unanswered.length === 0) {
+            endMission('perfect');
+            return;
+        }
+
+        // 2. Preferir dificultad según racha, pero solo dentro de las no contestadas
+        let pool = unanswered.filter(q => {
             if (gameState.streak < 3)  return (q.dificultad || 'Fácil') === 'Fácil';
             if (gameState.streak < 7)  return (q.dificultad || 'Media') === 'Media';
             return (q.dificultad || 'Difícil') === 'Difícil';
         });
 
-        // Si el pool de dificultad es muy pequeño, usar todas las preguntas
-        if (pool.length < 4) pool = [...gameState.questions];
+        // Si no hay suficientes en la dificultad actual, usar todas las no contestadas
+        if (pool.length < 2) pool = [...unanswered];
 
-        // 2. Excluir preguntas recientes del historial
-        let available = pool.filter(q => !gameState.recentIds.includes(q.id));
+        // 3. Excluir las vistas recientemente (anti-repetición de corto plazo)
+        const HISTORY_SIZE = Math.min(5, pool.length - 1);
+        let available = HISTORY_SIZE > 0
+            ? pool.filter(q => !gameState.recentIds.slice(-HISTORY_SIZE).includes(q.id))
+            : pool;
+        if (available.length === 0) available = [...pool];
 
-        // Si no quedan preguntas nuevas, limpiar historial y usar todo el pool
-        if (available.length === 0) {
-            gameState.recentIds = [];
-            available = [...pool];
-        }
-
-        // 3. Elegir pregunta al azar del pool disponible
+        // 4. Elegir al azar
         const q = available[Math.floor(Math.random() * available.length)];
         gameState.currentQ = q;
 
-        // Actualizar historial (máx HISTORY_SIZE)
+        // Actualizar historial reciente
         gameState.recentIds.push(q.id);
-        if (gameState.recentIds.length > HISTORY_SIZE) {
-            gameState.recentIds.shift();
-        }
+        if (gameState.recentIds.length > 8) gameState.recentIds.shift();
 
-        // 4. Guardar el TEXTO de la respuesta correcta antes de mezclar
-        //    (correcta puede ser índice numérico o texto string)
+        // 5. Guardar texto correcto antes de mezclar opciones
         let correctText = '';
         if (typeof q.correcta === 'number') {
             correctText = String(q.opciones[q.correcta] || '').trim().toLowerCase();
@@ -229,19 +246,26 @@ document.addEventListener('DOMContentLoaded', () => {
         }
         gameState.correctText = correctText;
 
-        // 5. Mezclar las opciones (anti-memorización de posición)
+        // 6. Mostrar progreso: preguntas respondidas / total
+        const progress = document.getElementById('q-progress');
+        if (progress) {
+            progress.textContent =
+                `${gameState.correctIds.length} / ${gameState.questions.length} ✓`;
+        }
+
+        // 7. Mezclar opciones (anti-memorización de posición)
         const shuffledOpts = shuffle([...q.opciones]);
 
-        // 6. Renderizar pregunta y opciones mezcladas
+        // 8. Renderizar
         els.qText.textContent = q.pregunta;
         els.options.innerHTML = '';
 
-        shuffledOpts.forEach((opt, i) => {
+        shuffledOpts.forEach(opt => {
             const b = document.createElement('button');
-            b.className   = 'option-btn';
-            b.textContent = opt;
+            b.className       = 'option-btn';
+            b.textContent     = opt;
             b.dataset.optText = String(opt).trim().toLowerCase();
-            b.onclick = () => handleAnswer(b);
+            b.onclick         = () => handleAnswer(b);
             els.options.appendChild(b);
         });
 
@@ -255,21 +279,24 @@ document.addEventListener('DOMContentLoaded', () => {
         if (!gameState.active) return;
         if (gameState.timer) clearInterval(gameState.timer);
 
-        // Comparar por texto (funciona independientemente del orden mezclado)
-        const chosenText  = btn.dataset.optText || '';
-        const isCorrect   = chosenText === gameState.correctText;
+        const chosenText = btn.dataset.optText || '';
+        const isCorrect  = chosenText === gameState.correctText;
 
         const all = document.querySelectorAll('.option-btn');
         all.forEach(b => b.style.pointerEvents = 'none');
 
-        // Marcar cuál era la correcta (buscarla por texto)
+        // Resaltar la respuesta correcta siempre
         all.forEach(b => {
-            if ((b.dataset.optText || '') === gameState.correctText) {
+            if ((b.dataset.optText || '') === gameState.correctText)
                 b.classList.add('correct');
-            }
         });
 
         if (isCorrect) {
+            // Marcar esta pregunta como respondida correctamente (no vuelve a aparecer)
+            if (gameState.currentQ && !gameState.correctIds.includes(gameState.currentQ.id)) {
+                gameState.correctIds.push(gameState.currentQ.id);
+            }
+
             gameState.streak++;
             gameState.totalCorrect++;
             els.streak.textContent = gameState.streak;
@@ -346,6 +373,7 @@ document.addEventListener('DOMContentLoaded', () => {
         gameState.totalCorrect = 0;
         gameState.missionEnded = false;
         gameState.recentIds    = [];
+        gameState.correctIds   = [];   // resetear preguntas respondidas
         gameState.correctText  = '';
         els.streak.textContent = '0';
         gameState.active       = true;
