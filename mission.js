@@ -18,7 +18,8 @@ document.addEventListener('DOMContentLoaded', () => {
         correctIds: [],     // preguntas ya respondidas correctamente en esta sesión
         correctText: '',    // texto de la respuesta correcta (tras shuffle)
         endTime: 0,
-        missionEnded: false
+        missionEnded: false,
+        allQuestions: []
     };
 
     // 3. Elementos del DOM
@@ -326,7 +327,8 @@ document.addEventListener('DOMContentLoaded', () => {
 
             // Cargar preguntas
             const snap = await db.collection('preguntas').get();
-            gameState.questions = snap.docs.map(d => ({ id: d.id, ...d.data() }));
+            gameState.allQuestions = snap.docs.map(d => ({ id: d.id, ...d.data() }));
+            gameState.questions = gameState.allQuestions;
 
             // Sincronizar mejor racha desde Firestore
             if (nickname !== 'Jugador') {
@@ -353,14 +355,44 @@ document.addEventListener('DOMContentLoaded', () => {
             }];
         }
 
-        els.startBtn.disabled    = false;
+        if (!selectedCategory) {
+            els.startBtn.disabled = true;
+        } else {
+            els.startBtn.disabled = false;
+        }
         els.startBtn.textContent = 'INICIAR MISIÓN';
     };
 
     // ─────────────────────────────────────────────────────────
     // 12. Botones
     // ─────────────────────────────────────────────────────────
+    // Lógica para seleccionar categoría
+    let selectedCategory = null;
+    const categoryBtns = document.querySelectorAll('.category-btn');
+    categoryBtns.forEach(btn => {
+        btn.onclick = () => {
+            categoryBtns.forEach(b => {
+                b.style.background = 'transparent';
+                b.style.color = 'var(--neon-blue)';
+            });
+            btn.style.background = 'rgba(0, 242, 255, 0.2)';
+            btn.style.color = '#fff';
+            selectedCategory = btn.dataset.tema;
+            if (els.startBtn.textContent !== 'CONECTANDO...') {
+                els.startBtn.disabled = false;
+            }
+        };
+    });
+
     els.startBtn.onclick = () => {
+        if (!selectedCategory) return;
+
+        // Filtrar preguntas por tema
+        gameState.questions = gameState.allQuestions.filter(q => q.tema === selectedCategory);
+        if (gameState.questions.length === 0) {
+            gameState.questions = gameState.allQuestions; // fallback
+        }
+
         els.startOverlay.classList.add('hidden');
         gameState.active       = true;
         gameState.missionEnded = false;
