@@ -332,24 +332,35 @@ document.addEventListener('DOMContentLoaded', () => {
         els.startBtn.textContent = 'CONECTANDO...';
 
         try {
-            // Recuperar racha pendiente del cierre anterior
-            await recoverPendingStreak();
+            // Habilitar caché offline (si no está habilitado ya)
+            if (db) {
+                db.enablePersistence({synchronizeTabs:true}).catch(()=>{});
+            }
 
-            // Cargar preguntas
-            const snap = await db.collection('preguntas').get();
+            // Recuperar racha pendiente en background (sin bloquear)
+            recoverPendingStreak();
+
+            let userDocPromise = Promise.resolve({ exists: false });
+            if (nickname !== 'Jugador') {
+                userDocPromise = db.collection('usuarios').doc(nickname).get();
+            }
+
+            // Cargar preguntas y usuario al mismo tiempo para ahorrar tiempo
+            const [snap, userDoc] = await Promise.all([
+                db.collection('preguntas').get(),
+                userDocPromise
+            ]);
+
             gameState.allQuestions = snap.docs.map(d => ({ id: d.id, ...d.data() }));
             gameState.questions = gameState.allQuestions;
 
             // Sincronizar mejor racha desde Firestore
-            if (nickname !== 'Jugador') {
-                const userDoc = await db.collection('usuarios').doc(nickname).get();
-                if (userDoc.exists) {
-                    const firestoreBest = parseInt(userDoc.data().mejorRacha) || 0;
-                    if (firestoreBest > gameState.best) {
-                        gameState.best = firestoreBest;
-                        localStorage.setItem('best_streak', firestoreBest);
-                        els.best.textContent = firestoreBest;
-                    }
+            if (userDoc.exists) {
+                const firestoreBest = parseInt(userDoc.data().mejorRacha) || 0;
+                if (firestoreBest > gameState.best) {
+                    gameState.best = firestoreBest;
+                    localStorage.setItem('best_streak', firestoreBest);
+                    els.best.textContent = firestoreBest;
                 }
             }
         } catch (e) {
