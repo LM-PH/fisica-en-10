@@ -94,6 +94,12 @@ document.addEventListener('DOMContentLoaded', () => {
             const btnRestart = document.getElementById('btn-restart');
             if (btnRestart) btnRestart.style.display = 'none';
         } else {
+            // Si pierden (por tiempo, error, o salida), se reinician las preguntas
+            if (selectedCategory) {
+                localStorage.removeItem(`fisica_correct_${nickname}_${selectedCategory}`);
+            }
+            gameState.correctIds = [];
+
             const btnRestart = document.getElementById('btn-restart');
             if (btnRestart) btnRestart.style.display = '';
             if (reason === 'timeout')   title.textContent = '¡TIEMPO AGOTADO!';
