@@ -87,8 +87,9 @@ document.addEventListener('DOMContentLoaded', () => {
         const subtitle = els.gameOverModal.querySelector('.modal-subtitle');
 
         if (reason === 'perfect') {
-            title.textContent = '🏆 ¡RACHA MÁXIMA!';
-            if (subtitle) subtitle.textContent = '¡Respondiste todas las preguntas correctamente!';
+            title.textContent = '¡TEMA COMPLETADO!';
+            if (subtitle) subtitle.textContent = `¡Terminaste todas las preguntas de ${selectedCategory}!`;
+
             // Ocultar botón reintentar y mostrar solo inicio
             const btnRestart = document.getElementById('btn-restart');
             if (btnRestart) btnRestart.style.display = 'none';
@@ -296,6 +297,9 @@ document.addEventListener('DOMContentLoaded', () => {
             // Marcar esta pregunta como respondida correctamente (no vuelve a aparecer)
             if (gameState.currentQ && !gameState.correctIds.includes(gameState.currentQ.id)) {
                 gameState.correctIds.push(gameState.currentQ.id);
+                if (selectedCategory) {
+                    localStorage.setItem(`fisica_correct_${nickname}_${selectedCategory}`, JSON.stringify(gameState.correctIds));
+                }
             }
 
             gameState.streak++;
@@ -387,6 +391,18 @@ document.addEventListener('DOMContentLoaded', () => {
     els.startBtn.onclick = () => {
         if (!selectedCategory) return;
 
+        // Cargar preguntas respondidas anteriormente en este tema
+        const savedIds = localStorage.getItem(`fisica_correct_${nickname}_${selectedCategory}`);
+        if (savedIds) {
+            try {
+                gameState.correctIds = JSON.parse(savedIds);
+            } catch(e) {
+                gameState.correctIds = [];
+            }
+        } else {
+            gameState.correctIds = [];
+        }
+
         // Filtrar preguntas por tema
         gameState.questions = gameState.allQuestions.filter(q => q.tema === selectedCategory);
         if (gameState.questions.length === 0) {
@@ -405,7 +421,7 @@ document.addEventListener('DOMContentLoaded', () => {
         gameState.totalCorrect = 0;
         gameState.missionEnded = false;
         gameState.recentIds    = [];
-        gameState.correctIds   = [];   // resetear preguntas respondidas
+        // No reseteamos correctIds para que no se repitan en esta sesión
         gameState.correctText  = '';
         els.streak.textContent = '0';
         gameState.active       = true;
