@@ -96,6 +96,9 @@ document.addEventListener('DOMContentLoaded', () => {
 
             const btnChangeTopic = document.getElementById('btn-change-topic');
             if (btnChangeTopic) btnChangeTopic.style.display = '';
+
+            const btnResetTopic = document.getElementById('btn-reset-topic');
+            if (btnResetTopic) btnResetTopic.style.display = '';
         } else {
             // Si pierden (por tiempo, error, o salida), se reinician las preguntas
             if (selectedCategory) {
@@ -108,6 +111,9 @@ document.addEventListener('DOMContentLoaded', () => {
 
             const btnChangeTopic = document.getElementById('btn-change-topic');
             if (btnChangeTopic) btnChangeTopic.style.display = 'none';
+
+            const btnResetTopic = document.getElementById('btn-reset-topic');
+            if (btnResetTopic) btnResetTopic.style.display = 'none';
 
             if (reason === 'timeout')   title.textContent = '¡TIEMPO AGOTADO!';
             else if (reason === 'away') title.textContent = '¡SALISTE DE LA MISIÓN!';
@@ -469,6 +475,25 @@ document.addEventListener('DOMContentLoaded', () => {
             });
             selectedCategory = null;
             els.startBtn.disabled = true;
+        };
+    }
+
+    const btnResetTopic = document.getElementById('btn-reset-topic');
+    if (btnResetTopic) {
+        btnResetTopic.onclick = () => {
+            if (selectedCategory) {
+                localStorage.removeItem(`fisica_correct_${nickname}_${selectedCategory}`);
+            }
+            gameState.correctIds = [];
+            els.gameOverModal.classList.add('hidden');
+            gameState.streak       = 0;
+            gameState.totalCorrect = 0;
+            gameState.missionEnded = false;
+            gameState.recentIds    = [];
+            gameState.correctText  = '';
+            els.streak.textContent = '0';
+            gameState.active       = true;
+            nextQuestion();
         };
     }
 
