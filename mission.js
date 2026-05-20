@@ -421,7 +421,12 @@ document.addEventListener('DOMContentLoaded', () => {
         }
 
         // Filtrar preguntas por tema
-        gameState.questions = gameState.allQuestions.filter(q => q.tema === selectedCategory);
+        if (selectedCategory === 'Todos') {
+            gameState.questions = [...gameState.allQuestions];
+        } else {
+            gameState.questions = gameState.allQuestions.filter(q => q.tema === selectedCategory);
+        }
+        
         if (gameState.questions.length === 0) {
             gameState.questions = gameState.allQuestions; // fallback
         }
