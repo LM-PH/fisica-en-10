@@ -90,9 +90,12 @@ document.addEventListener('DOMContentLoaded', () => {
             title.textContent = '¡TEMA COMPLETADO!';
             if (subtitle) subtitle.textContent = `¡Terminaste todas las preguntas de ${selectedCategory}!`;
 
-            // Ocultar botón reintentar y mostrar solo inicio
+            // Mostrar botón CAMBIAR TEMA y ocultar REINTENTAR
             const btnRestart = document.getElementById('btn-restart');
             if (btnRestart) btnRestart.style.display = 'none';
+
+            const btnChangeTopic = document.getElementById('btn-change-topic');
+            if (btnChangeTopic) btnChangeTopic.style.display = '';
         } else {
             // Si pierden (por tiempo, error, o salida), se reinician las preguntas
             if (selectedCategory) {
@@ -102,6 +105,10 @@ document.addEventListener('DOMContentLoaded', () => {
 
             const btnRestart = document.getElementById('btn-restart');
             if (btnRestart) btnRestart.style.display = '';
+
+            const btnChangeTopic = document.getElementById('btn-change-topic');
+            if (btnChangeTopic) btnChangeTopic.style.display = 'none';
+
             if (reason === 'timeout')   title.textContent = '¡TIEMPO AGOTADO!';
             else if (reason === 'away') title.textContent = '¡SALISTE DE LA MISIÓN!';
             else                        title.textContent = '¡MISIÓN FALLIDA!';
@@ -421,11 +428,7 @@ document.addEventListener('DOMContentLoaded', () => {
         }
 
         // Filtrar preguntas por tema
-        if (selectedCategory === 'Todos') {
-            gameState.questions = [...gameState.allQuestions];
-        } else {
-            gameState.questions = gameState.allQuestions.filter(q => q.tema === selectedCategory);
-        }
+        gameState.questions = gameState.allQuestions.filter(q => q.tema === selectedCategory);
         
         if (gameState.questions.length === 0) {
             gameState.questions = gameState.allQuestions; // fallback
@@ -449,6 +452,25 @@ document.addEventListener('DOMContentLoaded', () => {
         gameState.active       = true;
         nextQuestion();
     };
+
+    const btnChangeTopic = document.getElementById('btn-change-topic');
+    if (btnChangeTopic) {
+        btnChangeTopic.onclick = () => {
+            // Ocultar modal, mostrar overlay
+            els.gameOverModal.classList.add('hidden');
+            els.startOverlay.classList.remove('hidden');
+            
+            // NO se resetea la racha ni las variables de progreso, solo permitimos elegir otro
+            // Resetear la selección visual
+            const categoryBtns = document.querySelectorAll('.category-btn');
+            categoryBtns.forEach(b => {
+                b.style.background = 'transparent';
+                b.style.color = 'var(--neon-blue)';
+            });
+            selectedCategory = null;
+            els.startBtn.disabled = true;
+        };
+    }
 
     document.getElementById('btn-home').onclick = () => window.location.href = 'index.html';
 
