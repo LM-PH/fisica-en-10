@@ -102,7 +102,7 @@ document.addEventListener('DOMContentLoaded', () => {
         } else {
             // Si pierden (por tiempo, error, o salida), se reinician las preguntas
             if (selectedCategory) {
-                localStorage.removeItem(`fisica_correct_${nickname}_${selectedCategory}`);
+                localStorage.removeItem(`fisica_v2_correct_${nickname}_${selectedCategory}`);
             }
             gameState.correctIds = [];
 
@@ -317,7 +317,7 @@ document.addEventListener('DOMContentLoaded', () => {
             if (gameState.currentQ && !gameState.correctIds.includes(gameState.currentQ.id)) {
                 gameState.correctIds.push(gameState.currentQ.id);
                 if (selectedCategory) {
-                    localStorage.setItem(`fisica_correct_${nickname}_${selectedCategory}`, JSON.stringify(gameState.correctIds));
+                    localStorage.setItem(`fisica_v2_correct_${nickname}_${selectedCategory}`, JSON.stringify(gameState.correctIds));
                 }
             }
 
@@ -422,7 +422,7 @@ document.addEventListener('DOMContentLoaded', () => {
         if (!selectedCategory) return;
 
         // Cargar preguntas respondidas anteriormente en este tema
-        const savedIds = localStorage.getItem(`fisica_correct_${nickname}_${selectedCategory}`);
+        const savedIds = localStorage.getItem(`fisica_v2_correct_${nickname}_${selectedCategory}`);
         if (savedIds) {
             try {
                 gameState.correctIds = JSON.parse(savedIds);
@@ -482,7 +482,7 @@ document.addEventListener('DOMContentLoaded', () => {
     if (btnResetTopic) {
         btnResetTopic.onclick = () => {
             if (selectedCategory) {
-                localStorage.removeItem(`fisica_correct_${nickname}_${selectedCategory}`);
+                localStorage.removeItem(`fisica_v2_correct_${nickname}_${selectedCategory}`);
             }
             gameState.correctIds = [];
             els.gameOverModal.classList.add('hidden');
