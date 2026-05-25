@@ -100,10 +100,17 @@ document.addEventListener('DOMContentLoaded', () => {
             const btnResetTopic = document.getElementById('btn-reset-topic');
             if (btnResetTopic) btnResetTopic.style.display = '';
         } else {
-            // Si pierden (por tiempo, error, o salida), se reinician las preguntas
-            if (selectedCategory) {
-                localStorage.removeItem(`fisica_v2_correct_${nickname}_${selectedCategory}`);
+            // Si pierden (por tiempo, error, o salida), se reinician TODOS los temas
+            const prefix = `fisica_v2_correct_${nickname}_`;
+            const keysToRemove = [];
+            for (let i = 0; i < localStorage.length; i++) {
+                const key = localStorage.key(i);
+                if (key && key.startsWith(prefix)) {
+                    keysToRemove.push(key);
+                }
             }
+            keysToRemove.forEach(k => localStorage.removeItem(k));
+            
             gameState.correctIds = [];
 
             const btnRestart = document.getElementById('btn-restart');
@@ -481,9 +488,17 @@ document.addEventListener('DOMContentLoaded', () => {
     const btnResetTopic = document.getElementById('btn-reset-topic');
     if (btnResetTopic) {
         btnResetTopic.onclick = () => {
-            if (selectedCategory) {
-                localStorage.removeItem(`fisica_v2_correct_${nickname}_${selectedCategory}`);
+            // Limpiar TODOS los temas para que puedan volver a jugarlos
+            const prefix = `fisica_v2_correct_${nickname}_`;
+            const keysToRemove = [];
+            for (let i = 0; i < localStorage.length; i++) {
+                const key = localStorage.key(i);
+                if (key && key.startsWith(prefix)) {
+                    keysToRemove.push(key);
+                }
             }
+            keysToRemove.forEach(k => localStorage.removeItem(k));
+            
             gameState.correctIds = [];
             els.gameOverModal.classList.add('hidden');
             gameState.streak       = 0;
