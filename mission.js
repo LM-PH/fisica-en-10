@@ -14,9 +14,9 @@ document.addEventListener('DOMContentLoaded', () => {
         timer: null,
         questions: [],
         currentQ: null,
-        recentIds: [],      // historial anti-repetición reciente
-        correctIds: [],     // preguntas ya respondidas correctamente en esta sesión
-        correctText: '',    // texto de la respuesta correcta (tras shuffle)
+        shownInAttempt: [],  // preguntas YA mostradas en el intento actual (se reinicia al fallar)
+        correctIds: [],      // preguntas respondidas correctamente en el intento actual
+        correctText: '',     // texto de la respuesta correcta (tras shuffle)
         endTime: 0,
         missionEnded: false,
         allQuestions: []
@@ -100,9 +100,13 @@ document.addEventListener('DOMContentLoaded', () => {
             const btnResetTopic = document.getElementById('btn-reset-topic');
             if (btnResetTopic) btnResetTopic.style.display = '';
         } else {
-            // Si pierden (por tiempo, error, o salida), NO se borran las preguntas ya respondidas
-            // El estudiante continuará desde donde dejó, pero con racha en 0
-            // (solo se reinicia el tema completo con el botón REINICIAR TEMA)
+            // Si pierden → se reinician TODAS las preguntas del tema
+            // El alumno tendrá que volver a contestar las 40 desde cero
+            gameState.shownInAttempt = [];
+            gameState.correctIds = [];
+            if (selectedCategory) {
+                localStorage.removeItem(`fisica_v2_correct_${nickname}_${selectedCategory}`);
+            }
 
             const btnRestart = document.getElementById('btn-restart');
             if (btnRestart) btnRestart.style.display = '';
@@ -111,23 +115,12 @@ document.addEventListener('DOMContentLoaded', () => {
             if (btnChangeTopic) btnChangeTopic.style.display = 'none';
 
             const btnResetTopic = document.getElementById('btn-reset-topic');
-            if (btnResetTopic) btnResetTopic.style.display = '';
+            if (btnResetTopic) btnResetTopic.style.display = 'none';
 
             if (reason === 'timeout')   title.textContent = '¡TIEMPO AGOTADO!';
             else if (reason === 'away') title.textContent = '¡SALISTE DE LA MISIÓN!';
             else                        title.textContent = '¡MISIÓN FALLIDA!';
-
-            // Mostrar cuántas preguntas quedan
-            const remaining = gameState.questions.filter(
-                q => !gameState.correctIds.includes(q.id)
-            ).length;
-            if (subtitle) {
-                if (remaining > 0) {
-                    subtitle.textContent = `Te quedan ${remaining} preguntas por responder en este tema.`;
-                } else {
-                    subtitle.textContent = '';
-                }
-            }
+            if (subtitle) subtitle.textContent = `Inténtalo de nuevo — debes responder las ${gameState.questions.length} preguntas sin fallar.`;
         }
 
         els.finalScore.textContent  = gameState.totalCorrect;
@@ -231,45 +224,31 @@ document.addEventListener('DOMContentLoaded', () => {
     const nextQuestion = () => {
         if (!gameState.active) return;
 
-        // 1. Excluir preguntas ya contestadas correctamente en esta sesión
-        const unanswered = gameState.questions.filter(
-            q => !gameState.correctIds.includes(q.id)
+        // 1. Preguntas NO mostradas aún en este intento
+        let pending = gameState.questions.filter(
+            q => !gameState.shownInAttempt.includes(q.id)
         );
 
-        // 🏆 Si no quedan preguntas sin contestar → ¡RACHA MÁXIMA!
-        if (unanswered.length === 0) {
-            endMission('perfect');
+        // Si ya se mostraron todas → las preguntas correctas determinan el resultado
+        if (pending.length === 0) {
+            // Si el alumno respondió TODAS correctamente → ¡TEMA COMPLETADO!
+            if (gameState.correctIds.length === gameState.questions.length) {
+                endMission('perfect');
+            } else {
+                // Hubo errores en el camino (no debería llegar aquí por flujo normal)
+                endMission('wrong');
+            }
             return;
         }
 
-        // 2. Preferir dificultad según racha, pero solo dentro de las no contestadas
-        let pool = unanswered.filter(q => {
-            if (gameState.streak < 3)  return (q.dificultad || 'Fácil') === 'Fácil';
-            if (gameState.streak < 7)  return (q.dificultad || 'Media') === 'Media';
-            return (q.dificultad || 'Difícil') === 'Difícil';
-        });
-
-        // Si no hay suficientes en la dificultad actual, usar todas las no contestadas
-        if (pool.length < 2) pool = [...unanswered];
-
-        // 3. Excluir las vistas recientemente (anti-repetición de corto plazo)
-        // Aumentamos a 20 para que no se repitan tan rápido incluso si pierden
-        const HISTORY_SIZE = Math.min(20, pool.length - 1);
-        let available = HISTORY_SIZE > 0
-            ? pool.filter(q => !gameState.recentIds.slice(-HISTORY_SIZE).includes(q.id))
-            : pool;
-        if (available.length === 0) available = [...pool];
-
-        // 4. Elegir al azar
-        const q = available[Math.floor(Math.random() * available.length)];
+        // 2. Elegir al azar entre las pendientes (sin filtro de dificultad)
+        const q = pending[Math.floor(Math.random() * pending.length)];
         gameState.currentQ = q;
 
-        // Actualizar historial reciente
-        gameState.recentIds.push(q.id);
-        if (gameState.recentIds.length > 30) gameState.recentIds.shift();
-        localStorage.setItem(`fisica_v2_recent_${nickname}`, JSON.stringify(gameState.recentIds));
+        // Registrar como mostrada en este intento
+        gameState.shownInAttempt.push(q.id);
 
-        // 5. Guardar texto correcto antes de mezclar opciones
+        // 3. Guardar texto correcto antes de mezclar opciones
         let correctText = '';
         if (typeof q.correcta === 'number') {
             correctText = String(q.opciones[q.correcta] || '').trim().toLowerCase();
@@ -278,18 +257,18 @@ document.addEventListener('DOMContentLoaded', () => {
         }
         gameState.correctText = correctText;
 
-        // 6. Mostrar progreso: preguntas respondidas / total
+        // 4. Mostrar progreso: preguntas vistas / total del tema
         const progress = document.getElementById('q-progress');
         if (progress) {
             progress.textContent =
-                `${gameState.correctIds.length} / ${gameState.questions.length} ✓`;
+                `${gameState.shownInAttempt.length} / ${gameState.questions.length}`;
         }
 
-        // 7. Mezclar opciones (anti-memorización de posición)
+        // 5. Mezclar opciones (anti-memorización de posición)
         let shuffledOpts = shuffle([...q.opciones]);
         shuffledOpts = shuffle(shuffledOpts); // Doble mezcla asegurada
 
-        // 8. Renderizar
+        // 6. Renderizar
         els.qText.textContent = q.pregunta;
         els.options.innerHTML = '';
 
@@ -325,12 +304,9 @@ document.addEventListener('DOMContentLoaded', () => {
         });
 
         if (isCorrect) {
-            // Marcar esta pregunta como respondida correctamente (no vuelve a aparecer)
+            // Marcar esta pregunta como respondida correctamente
             if (gameState.currentQ && !gameState.correctIds.includes(gameState.currentQ.id)) {
                 gameState.correctIds.push(gameState.currentQ.id);
-                if (selectedCategory) {
-                    localStorage.setItem(`fisica_v2_correct_${nickname}_${selectedCategory}`, JSON.stringify(gameState.correctIds));
-                }
             }
 
             gameState.streak++;
@@ -440,23 +416,22 @@ document.addEventListener('DOMContentLoaded', () => {
     els.startBtn.onclick = () => {
         if (!selectedCategory) return;
 
-        // Cargar preguntas respondidas anteriormente en este tema
-        const savedIds = localStorage.getItem(`fisica_v2_correct_${nickname}_${selectedCategory}`);
-        if (savedIds) {
-            try {
-                gameState.correctIds = JSON.parse(savedIds);
-            } catch(e) {
-                gameState.correctIds = [];
-            }
-        } else {
-            gameState.correctIds = [];
-        }
+        // Siempre empezar desde cero al seleccionar tema
+        gameState.correctIds     = [];
+        gameState.shownInAttempt = [];
+        gameState.streak         = 0;
+        gameState.totalCorrect   = 0;
+        els.streak.textContent   = '0';
 
-        // Filtrar preguntas por tema
-        gameState.questions = gameState.allQuestions.filter(q => q.tema === selectedCategory);
+        // Filtrar preguntas por tema (o todas si es Aleatorio)
+        if (selectedCategory === 'Aleatorio') {
+            gameState.questions = [...gameState.allQuestions];
+        } else {
+            gameState.questions = gameState.allQuestions.filter(q => q.tema === selectedCategory);
+        }
         
         if (gameState.questions.length === 0) {
-            gameState.questions = gameState.allQuestions; // fallback
+            gameState.questions = [...gameState.allQuestions]; // fallback
         }
 
         els.startOverlay.classList.add('hidden');
@@ -467,14 +442,15 @@ document.addEventListener('DOMContentLoaded', () => {
 
     document.getElementById('btn-restart').onclick = () => {
         els.gameOverModal.classList.add('hidden');
-        gameState.streak       = 0;
-        gameState.totalCorrect = 0;
-        gameState.missionEnded = false;
-        // Mantenemos correctIds: el estudiante sigue desde donde quedó
-        // Solo se ven las preguntas que NO ha respondido correctamente aún
-        gameState.correctText  = '';
-        els.streak.textContent = '0';
-        gameState.active       = true;
+        // Al reintentar: empezar con TODAS las preguntas del tema desde cero
+        gameState.streak         = 0;
+        gameState.totalCorrect   = 0;
+        gameState.missionEnded   = false;
+        gameState.correctIds     = [];
+        gameState.shownInAttempt = [];
+        gameState.correctText    = '';
+        els.streak.textContent   = '0';
+        gameState.active         = true;
         nextQuestion();
     };
 
