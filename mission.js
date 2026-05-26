@@ -14,9 +14,10 @@ document.addEventListener('DOMContentLoaded', () => {
         timer: null,
         questions: [],
         currentQ: null,
-        shownInAttempt: [],  // preguntas YA mostradas en el intento actual (se reinicia al fallar)
-        correctIds: [],      // preguntas respondidas correctamente en el intento actual
-        correctText: '',     // texto de la respuesta correcta (tras shuffle)
+        shownInAttempt: [],   // preguntas mostradas en el intento actual (se reinicia al fallar)
+        correctIds: [],       // preguntas respondidas correctamente en el intento actual
+        correctText: '',      // texto de la respuesta correcta (tras shuffle)
+        completedTopics: [],  // temas completados sin fallar en esta sesión
         endTime: 0,
         missionEnded: false,
         allQuestions: []
@@ -86,49 +87,76 @@ document.addEventListener('DOMContentLoaded', () => {
         const title    = els.gameOverModal.querySelector('h2');
         const subtitle = els.gameOverModal.querySelector('.modal-subtitle');
 
+        // Capturar valores antes de cualquier reset
+        const earnedStreak = gameState.streak;
+        const earnedTotal  = gameState.totalCorrect;
+        const topicsAlreadyDone = gameState.completedTopics.length;
+
+        const ALL_TOPICS = ['Pascal', 'Arquímedes', 'Energía', 'Electricidad'];
+
         if (reason === 'perfect') {
-            title.textContent = '¡TEMA COMPLETADO!';
-            if (subtitle) subtitle.textContent = `¡Terminaste todas las preguntas de ${selectedCategory}!`;
-
-            // Mostrar botón CAMBIAR TEMA y ocultar REINTENTAR
-            const btnRestart = document.getElementById('btn-restart');
-            if (btnRestart) btnRestart.style.display = 'none';
-
-            const btnChangeTopic = document.getElementById('btn-change-topic');
-            if (btnChangeTopic) btnChangeTopic.style.display = '';
-
-            const btnResetTopic = document.getElementById('btn-reset-topic');
-            if (btnResetTopic) btnResetTopic.style.display = '';
-        } else {
-            // Si pierden → se reinician TODAS las preguntas del tema
-            // El alumno tendrá que volver a contestar las 40 desde cero
-            gameState.shownInAttempt = [];
-            gameState.correctIds = [];
-            if (selectedCategory) {
-                localStorage.removeItem(`fisica_v2_correct_${nickname}_${selectedCategory}`);
+            // Marcar el tema como completado
+            if (selectedCategory && !gameState.completedTopics.includes(selectedCategory)) {
+                gameState.completedTopics.push(selectedCategory);
             }
 
-            const btnRestart = document.getElementById('btn-restart');
-            if (btnRestart) btnRestart.style.display = '';
+            const allDone = ALL_TOPICS.every(t => gameState.completedTopics.includes(t));
 
-            const btnChangeTopic = document.getElementById('btn-change-topic');
-            if (btnChangeTopic) btnChangeTopic.style.display = 'none';
+            if (allDone) {
+                // ¡MISIÓN TOTAL COMPLETADA!
+                title.textContent = '🏆 ¡MISIÓN TOTAL!';
+                if (subtitle) subtitle.textContent =
+                    `¡Completaste los ${ALL_TOPICS.length} temas con una racha de ${earnedStreak}! ¡Eres un genio!`;
 
-            const btnResetTopic = document.getElementById('btn-reset-topic');
-            if (btnResetTopic) btnResetTopic.style.display = 'none';
+                document.getElementById('btn-restart').style.display    = 'none';
+                document.getElementById('btn-change-topic').style.display = 'none';
+                document.getElementById('btn-reset-topic').style.display  = '';
+                document.getElementById('btn-reset-topic').textContent     = 'JUGAR DE NUEVO';
+            } else {
+                title.textContent = '¡TEMA COMPLETADO!';
+                const remaining = ALL_TOPICS.filter(t => !gameState.completedTopics.includes(t));
+                if (subtitle) subtitle.textContent =
+                    `¡Terminaste ${selectedCategory}! Racha: ${earnedStreak}. Selecciona el siguiente tema para continuar.`;
+
+                document.getElementById('btn-restart').style.display    = 'none';
+                document.getElementById('btn-change-topic').style.display = '';
+                document.getElementById('btn-reset-topic').style.display  = 'none';
+            }
+
+            if (earnedStreak > 0) saveResult(earnedStreak);
+
+        } else {
+            // FALLO: reiniciar TODO — racha, temas completados y progreso de preguntas
+            if (earnedStreak > 0) saveResult(earnedStreak);
+
+            gameState.completedTopics = [];
+            gameState.shownInAttempt  = [];
+            gameState.correctIds      = [];
+            gameState.streak          = 0;
+            gameState.totalCorrect    = 0;
+            els.streak.textContent    = '0';
+
+            document.getElementById('btn-restart').style.display    = '';
+            document.getElementById('btn-restart').textContent       = 'VOLVER A ELEGIR TEMA';
+            document.getElementById('btn-change-topic').style.display = 'none';
+            document.getElementById('btn-reset-topic').style.display  = 'none';
 
             if (reason === 'timeout')   title.textContent = '¡TIEMPO AGOTADO!';
             else if (reason === 'away') title.textContent = '¡SALISTE DE LA MISIÓN!';
             else                        title.textContent = '¡MISIÓN FALLIDA!';
-            if (subtitle) subtitle.textContent = `Inténtalo de nuevo — debes responder las ${gameState.questions.length} preguntas sin fallar.`;
+
+            if (subtitle) {
+                if (topicsAlreadyDone > 0) {
+                    subtitle.textContent = `Habías completado ${topicsAlreadyDone} tema(s). Debes volver a empezar desde el principio.`;
+                } else {
+                    subtitle.textContent = `Debes responder todas las preguntas del tema sin fallar.`;
+                }
+            }
         }
 
-        els.finalScore.textContent  = gameState.totalCorrect;
-        els.finalStreak.textContent = gameState.streak;
-
+        els.finalScore.textContent  = earnedTotal;
+        els.finalStreak.textContent = earnedStreak;
         els.gameOverModal.classList.remove('hidden');
-
-        if (gameState.streak > 0) saveResult(gameState.streak);
     };
 
     // ─────────────────────────────────────────────────────────
@@ -395,14 +423,52 @@ document.addEventListener('DOMContentLoaded', () => {
     // ─────────────────────────────────────────────────────────
     // 12. Botones
     // ─────────────────────────────────────────────────────────
+    // ─────────────────────────────────────────────────────────
+    // Helper: actualizar visualmente los botones de tema
+    // ─────────────────────────────────────────────────────────
+    const updateCategoryDisplay = () => {
+        const catBtns = document.querySelectorAll('.category-btn');
+        catBtns.forEach(btn => {
+            const tema = btn.dataset.tema;
+            if (!tema || tema === 'Aleatorio') return;
+
+            // Guardar texto original la primera vez
+            if (!btn.dataset.originalText) {
+                btn.dataset.originalText = btn.textContent.trim();
+            }
+
+            const done = gameState.completedTopics.includes(tema);
+            if (done) {
+                btn.disabled = true;
+                btn.style.opacity      = '0.6';
+                btn.style.cursor       = 'not-allowed';
+                btn.style.background   = 'rgba(57, 255, 20, 0.15)';
+                btn.style.borderColor  = 'var(--neon-green)';
+                btn.style.color        = 'var(--neon-green)';
+                btn.textContent        = btn.dataset.originalText + ' ✓';
+            } else {
+                btn.disabled = false;
+                btn.style.opacity      = '1';
+                btn.style.cursor       = '';
+                btn.style.background   = 'transparent';
+                btn.style.borderColor  = '';
+                btn.style.color        = 'var(--neon-blue)';
+                btn.textContent        = btn.dataset.originalText;
+            }
+        });
+    };
+
     // Lógica para seleccionar categoría
     let selectedCategory = null;
     const categoryBtns = document.querySelectorAll('.category-btn');
     categoryBtns.forEach(btn => {
         btn.onclick = () => {
+            if (btn.disabled) return; // tema ya completado, no se puede repetir
             categoryBtns.forEach(b => {
-                b.style.background = 'transparent';
-                b.style.color = 'var(--neon-blue)';
+                if (!gameState.completedTopics.includes(b.dataset.tema)) {
+                    b.style.background = 'transparent';
+                    b.style.color = 'var(--neon-blue)';
+                }
             });
             btn.style.background = 'rgba(0, 242, 255, 0.2)';
             btn.style.color = '#fff';
@@ -415,13 +481,13 @@ document.addEventListener('DOMContentLoaded', () => {
 
     els.startBtn.onclick = () => {
         if (!selectedCategory) return;
+        if (gameState.completedTopics.includes(selectedCategory)) return; // ya completado
 
-        // Siempre empezar desde cero al seleccionar tema
+        // Reiniciar solo el progreso del TEMA ACTUAL — la racha se conserva
         gameState.correctIds     = [];
         gameState.shownInAttempt = [];
-        gameState.streak         = 0;
         gameState.totalCorrect   = 0;
-        els.streak.textContent   = '0';
+        // ⚠️ NO se resetea gameState.streak — se acumula entre temas
 
         // Filtrar preguntas por tema (o todas si es Aleatorio)
         if (selectedCategory === 'Aleatorio') {
@@ -429,7 +495,7 @@ document.addEventListener('DOMContentLoaded', () => {
         } else {
             gameState.questions = gameState.allQuestions.filter(q => q.tema === selectedCategory);
         }
-        
+
         if (gameState.questions.length === 0) {
             gameState.questions = [...gameState.allQuestions]; // fallback
         }
@@ -441,33 +507,25 @@ document.addEventListener('DOMContentLoaded', () => {
     };
 
     document.getElementById('btn-restart').onclick = () => {
+        // Después de un fallo: todo ya fue reseteado en endMission
+        // Volver a la selección de tema
+        document.getElementById('btn-restart').textContent = 'VOLVER A ELEGIR TEMA';
         els.gameOverModal.classList.add('hidden');
-        // Al reintentar: empezar con TODAS las preguntas del tema desde cero
-        gameState.streak         = 0;
-        gameState.totalCorrect   = 0;
-        gameState.missionEnded   = false;
-        gameState.correctIds     = [];
-        gameState.shownInAttempt = [];
-        gameState.correctText    = '';
-        els.streak.textContent   = '0';
-        gameState.active         = true;
-        nextQuestion();
+        gameState.missionEnded = false;
+        gameState.correctText  = '';
+        updateCategoryDisplay();
+        selectedCategory = null;
+        els.startBtn.disabled = true;
+        els.startOverlay.classList.remove('hidden');
     };
 
     const btnChangeTopic = document.getElementById('btn-change-topic');
     if (btnChangeTopic) {
         btnChangeTopic.onclick = () => {
-            // Ocultar modal, mostrar overlay
+            // La racha SE CONSERVA — solo volvemos a elegir el siguiente tema
             els.gameOverModal.classList.add('hidden');
             els.startOverlay.classList.remove('hidden');
-            
-            // NO se resetea la racha ni las variables de progreso, solo permitimos elegir otro
-            // Resetear la selección visual
-            const categoryBtns = document.querySelectorAll('.category-btn');
-            categoryBtns.forEach(b => {
-                b.style.background = 'transparent';
-                b.style.color = 'var(--neon-blue)';
-            });
+            updateCategoryDisplay();  // marcar temas completados con ✓
             selectedCategory = null;
             els.startBtn.disabled = true;
         };
@@ -476,27 +534,22 @@ document.addEventListener('DOMContentLoaded', () => {
     const btnResetTopic = document.getElementById('btn-reset-topic');
     if (btnResetTopic) {
         btnResetTopic.onclick = () => {
-            // Limpiar TODOS los temas para que puedan volver a jugarlos
-            const prefix = `fisica_v2_correct_${nickname}_`;
-            const keysToRemove = [];
-            for (let i = 0; i < localStorage.length; i++) {
-                const key = localStorage.key(i);
-                if (key && key.startsWith(prefix)) {
-                    keysToRemove.push(key);
-                }
-            }
-            keysToRemove.forEach(k => localStorage.removeItem(k));
-            
-            gameState.correctIds = [];
+            // Reiniciar todo desde cero y volver a selección de tema
+            gameState.completedTopics = [];
+            gameState.shownInAttempt  = [];
+            gameState.correctIds      = [];
+            gameState.streak          = 0;
+            gameState.totalCorrect    = 0;
+            gameState.missionEnded    = false;
+            gameState.correctText     = '';
+            els.streak.textContent    = '0';
+
+            document.getElementById('btn-reset-topic').textContent = 'REINICIAR TEMA';
             els.gameOverModal.classList.add('hidden');
-            gameState.streak       = 0;
-            gameState.totalCorrect = 0;
-            gameState.missionEnded = false;
-            // Mantenemos recentIds para mayor variedad
-            gameState.correctText  = '';
-            els.streak.textContent = '0';
-            gameState.active       = true;
-            nextQuestion();
+            updateCategoryDisplay();
+            selectedCategory = null;
+            els.startBtn.disabled = true;
+            els.startOverlay.classList.remove('hidden');
         };
     }
 
