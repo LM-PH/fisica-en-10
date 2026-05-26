@@ -100,18 +100,9 @@ document.addEventListener('DOMContentLoaded', () => {
             const btnResetTopic = document.getElementById('btn-reset-topic');
             if (btnResetTopic) btnResetTopic.style.display = '';
         } else {
-            // Si pierden (por tiempo, error, o salida), se reinician TODOS los temas
-            const prefix = `fisica_v2_correct_${nickname}_`;
-            const keysToRemove = [];
-            for (let i = 0; i < localStorage.length; i++) {
-                const key = localStorage.key(i);
-                if (key && key.startsWith(prefix)) {
-                    keysToRemove.push(key);
-                }
-            }
-            keysToRemove.forEach(k => localStorage.removeItem(k));
-            
-            gameState.correctIds = [];
+            // Si pierden (por tiempo, error, o salida), NO se borran las preguntas ya respondidas
+            // El estudiante continuará desde donde dejó, pero con racha en 0
+            // (solo se reinicia el tema completo con el botón REINICIAR TEMA)
 
             const btnRestart = document.getElementById('btn-restart');
             if (btnRestart) btnRestart.style.display = '';
@@ -120,12 +111,23 @@ document.addEventListener('DOMContentLoaded', () => {
             if (btnChangeTopic) btnChangeTopic.style.display = 'none';
 
             const btnResetTopic = document.getElementById('btn-reset-topic');
-            if (btnResetTopic) btnResetTopic.style.display = 'none';
+            if (btnResetTopic) btnResetTopic.style.display = '';
 
             if (reason === 'timeout')   title.textContent = '¡TIEMPO AGOTADO!';
             else if (reason === 'away') title.textContent = '¡SALISTE DE LA MISIÓN!';
             else                        title.textContent = '¡MISIÓN FALLIDA!';
-            if (subtitle) subtitle.textContent = '';
+
+            // Mostrar cuántas preguntas quedan
+            const remaining = gameState.questions.filter(
+                q => !gameState.correctIds.includes(q.id)
+            ).length;
+            if (subtitle) {
+                if (remaining > 0) {
+                    subtitle.textContent = `Te quedan ${remaining} preguntas por responder en este tema.`;
+                } else {
+                    subtitle.textContent = '';
+                }
+            }
         }
 
         els.finalScore.textContent  = gameState.totalCorrect;
@@ -251,7 +253,8 @@ document.addEventListener('DOMContentLoaded', () => {
         if (pool.length < 2) pool = [...unanswered];
 
         // 3. Excluir las vistas recientemente (anti-repetición de corto plazo)
-        const HISTORY_SIZE = Math.min(5, pool.length - 1);
+        // Aumentamos a 20 para que no se repitan tan rápido incluso si pierden
+        const HISTORY_SIZE = Math.min(20, pool.length - 1);
         let available = HISTORY_SIZE > 0
             ? pool.filter(q => !gameState.recentIds.slice(-HISTORY_SIZE).includes(q.id))
             : pool;
@@ -263,7 +266,8 @@ document.addEventListener('DOMContentLoaded', () => {
 
         // Actualizar historial reciente
         gameState.recentIds.push(q.id);
-        if (gameState.recentIds.length > 8) gameState.recentIds.shift();
+        if (gameState.recentIds.length > 30) gameState.recentIds.shift();
+        localStorage.setItem(`fisica_v2_recent_${nickname}`, JSON.stringify(gameState.recentIds));
 
         // 5. Guardar texto correcto antes de mezclar opciones
         let correctText = '';
@@ -282,7 +286,8 @@ document.addEventListener('DOMContentLoaded', () => {
         }
 
         // 7. Mezclar opciones (anti-memorización de posición)
-        const shuffledOpts = shuffle([...q.opciones]);
+        let shuffledOpts = shuffle([...q.opciones]);
+        shuffledOpts = shuffle(shuffledOpts); // Doble mezcla asegurada
 
         // 8. Renderizar
         els.qText.textContent = q.pregunta;
@@ -350,6 +355,13 @@ document.addEventListener('DOMContentLoaded', () => {
     const init = async () => {
         els.startBtn.disabled    = true;
         els.startBtn.textContent = 'CONECTANDO...';
+
+        try {
+            const savedRecent = localStorage.getItem(`fisica_v2_recent_${nickname}`);
+            if (savedRecent) {
+                gameState.recentIds = JSON.parse(savedRecent);
+            }
+        } catch(e) {}
 
         try {
             // Habilitar caché offline (si no está habilitado ya)
@@ -458,8 +470,8 @@ document.addEventListener('DOMContentLoaded', () => {
         gameState.streak       = 0;
         gameState.totalCorrect = 0;
         gameState.missionEnded = false;
-        gameState.recentIds    = [];
-        // No reseteamos correctIds para que no se repitan en esta sesión
+        // Mantenemos correctIds: el estudiante sigue desde donde quedó
+        // Solo se ven las preguntas que NO ha respondido correctamente aún
         gameState.correctText  = '';
         els.streak.textContent = '0';
         gameState.active       = true;
@@ -504,7 +516,7 @@ document.addEventListener('DOMContentLoaded', () => {
             gameState.streak       = 0;
             gameState.totalCorrect = 0;
             gameState.missionEnded = false;
-            gameState.recentIds    = [];
+            // Mantenemos recentIds para mayor variedad
             gameState.correctText  = '';
             els.streak.textContent = '0';
             gameState.active       = true;
