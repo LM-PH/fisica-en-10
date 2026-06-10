@@ -92,7 +92,7 @@ document.addEventListener('DOMContentLoaded', () => {
         const earnedTotal  = gameState.totalCorrect;
         const topicsAlreadyDone = gameState.completedTopics.length;
 
-        const ALL_TOPICS = ['Pascal', 'Arquímedes', 'Energía', 'Electricidad'];
+        const ALL_TOPICS = ['Pascal', 'Arquímedes', 'Energía', 'Electricidad', 'Electromagnetismo', 'Universo'];
 
         if (reason === 'perfect') {
             // Marcar el tema como completado
