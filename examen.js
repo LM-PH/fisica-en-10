@@ -362,6 +362,7 @@ document.addEventListener('DOMContentLoaded', async () => {
             const updates = { intentosExamen: state.usedAttempts };
             if (newBest) {
                 updates.mejorCalExamen = grade;
+                updates.fechaExamen = new Date().toISOString();
                 state.bestGrade = grade;
             }
             await db.collection('usuarios').doc(state.nickname).update(updates);

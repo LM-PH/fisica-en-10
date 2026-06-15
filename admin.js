@@ -175,7 +175,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 <td style="font-size:0.85rem;opacity:0.8;">${escHtml(student.correo || '-')}</td>
                 <td><span class="score-value">🔥 ${student.mejorRacha ?? 0}</span></td>
                 <td>
-                    ${getExamGradeBadge(student.mejorCalExamen, student.intentosExamen)}
+                    ${getExamGradeBadge(student.mejorCalExamen, student.intentosExamen, student.fechaExamen)}
                 </td>
                 <td>
                     <button class="delete-btn" data-id="${escHtml(student.id)}" data-name="${escHtml(student.nombre || student.id)}">
@@ -205,7 +205,7 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     // ---- Exam grade badge ----
-    function getExamGradeBadge(mejorCalExamen, intentosExamen) {
+    function getExamGradeBadge(mejorCalExamen, intentosExamen, fechaExamen) {
         const attempts = parseInt(intentosExamen) || 0;
         if (mejorCalExamen == null || mejorCalExamen === undefined) {
             // Sin intentos aún
@@ -219,9 +219,23 @@ document.addEventListener('DOMContentLoaded', () => {
         else                  { color = '#ff6b6b'; bg = 'rgba(255,68,68,0.1)';  border = 'rgba(255,68,68,0.4)';  }
 
         const attemptsInfo = attempts >= 2 ? '🔒' : `(${attempts}/2)`;
-        return `<span style="display:inline-flex;align-items:center;gap:0.3rem;padding:3px 10px;border-radius:6px;font-size:0.8rem;font-weight:700;background:${bg};color:${color};border:1px solid ${border};white-space:nowrap;">
-                    📝 ${grade} <span style="font-size:0.65rem;opacity:0.6;">${attemptsInfo}</span>
-                </span>`;
+        
+        let dateHtml = '';
+        if (fechaExamen) {
+            const d = new Date(fechaExamen);
+            if (!isNaN(d.getTime())) {
+                const dateStr = d.toLocaleDateString('es-MX', { day: '2-digit', month: 'short' });
+                const timeStr = d.toLocaleTimeString('es-MX', { hour: '2-digit', minute: '2-digit' });
+                dateHtml = `<div style="font-size:0.65rem;opacity:0.7;margin-top:0.3rem;">📅 ${dateStr} ${timeStr}</div>`;
+            }
+        }
+
+        return `<div style="display:flex;flex-direction:column;align-items:flex-start;">
+                    <span style="display:inline-flex;align-items:center;gap:0.3rem;padding:3px 10px;border-radius:6px;font-size:0.8rem;font-weight:700;background:${bg};color:${color};border:1px solid ${border};white-space:nowrap;">
+                        📝 ${grade} <span style="font-size:0.65rem;opacity:0.6;">${attemptsInfo}</span>
+                    </span>
+                    ${dateHtml}
+                </div>`;
     }
 
     // ---- Get filtered list ----
