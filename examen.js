@@ -418,10 +418,24 @@ document.addEventListener('DOMContentLoaded', async () => {
     document.addEventListener('visibilitychange', () => {
         if (document.hidden && state.active) {
             clearTimer();
-            // Contar las preguntas no respondidas como incorrectas
-            // Terminar el intento directamente
-            state.currentIndex = state.examQuestions.length;
-            finishAttempt();
+            // Mostrar respuesta correcta brevemente y marcar como trampa/incorrecta
+            const btns = document.querySelectorAll('.exam-option-btn');
+            btns.forEach(b => {
+                b.disabled = true;
+                if ((b.dataset.optText || '') === state.correctText) b.classList.add('correct');
+            });
+            const timerText = document.getElementById('exam-timer-text');
+            const timerBar = document.getElementById('exam-timer-bar');
+            if (timerText) {
+                timerText.textContent = '¡No salgas!';
+                timerText.style.color = '#ff6b6b';
+            }
+            if (timerBar) {
+                timerBar.style.width = '0%';
+                timerBar.style.background = '#ff4444';
+            }
+            // Pasar a la siguiente pregunta después de una breve pausa
+            setTimeout(nextQuestion, 1500);
         }
     });
 
