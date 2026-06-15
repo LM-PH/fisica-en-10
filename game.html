@@ -137,7 +137,27 @@
                 <button class="btn btn-secondary category-btn" data-tema="Electromagnetismo" style="padding: 0.8rem; font-size: 0.9rem;">Electromagnetismo y Espectro</button>
                 <button class="btn btn-secondary category-btn" data-tema="Universo" style="padding: 0.8rem; font-size: 0.9rem;">El Universo y su Origen</button>
             </div>
-            <p style="font-size: 0.8rem; opacity: 0.8;">Tienes 10 segundos por pregunta. La racha más larga gana.</p>
+
+            <!-- EXAMEN ESPECIAL — solo visible para grado 2, grupo A o B -->
+            <div id="exam-special-section" style="display:none; width:100%; border-top: 1px solid rgba(255,180,0,0.2); padding-top: 1rem; margin-top: 0.5rem;">
+                <p style="font-size:0.65rem;color:rgba(255,180,0,0.7);letter-spacing:2px;text-transform:uppercase;margin-bottom:0.6rem;">⚡ Evaluación especial</p>
+                <a href="examen.html" id="btn-special-exam"
+                   style="display:flex;align-items:center;justify-content:center;gap:0.5rem;
+                          width:100%;padding:0.85rem;border-radius:16px;
+                          background:linear-gradient(135deg,rgba(255,180,0,0.12),rgba(255,107,0,0.12));
+                          border:1.5px solid rgba(255,180,0,0.5);color:#ffb400;
+                          font-family:inherit;font-size:0.9rem;font-weight:900;
+                          text-decoration:none;text-transform:uppercase;letter-spacing:1px;
+                          transition:all 0.3s;cursor:pointer;
+                          box-shadow:0 0 15px rgba(255,180,0,0.15);"
+                   onmouseover="this.style.background='linear-gradient(135deg,rgba(255,180,0,0.25),rgba(255,107,0,0.25))';this.style.boxShadow='0 0 25px rgba(255,180,0,0.4)';"
+                   onmouseout="this.style.background='linear-gradient(135deg,rgba(255,180,0,0.12),rgba(255,107,0,0.12))';this.style.boxShadow='0 0 15px rgba(255,180,0,0.15)';"
+                >
+                    📝 EXAMEN ESPECIAL <span id="exam-group-tag" style="font-size:0.7rem;opacity:0.7;"></span>
+                </a>
+            </div>
+
+            <p style="font-size: 0.8rem; opacity: 0.8; margin-top: 0.8rem;">Tienes 10 segundos por pregunta. La racha más larga gana.</p>
             <button id="btn-real-start" class="btn btn-primary" style="margin-top: 1.5rem;" disabled>¡COMENZAR AHORA!</button>
         </div>
     </div>
@@ -215,5 +235,28 @@
     <script src="firebase-config.js"></script>
     <script src="music.js"></script>
     <script src="mission.js?v=7.0"></script>
+    <script>
+        // Mostrar botón Examen Especial solo para grado 2, grupos A o B
+        (function() {
+            const nick = localStorage.getItem('user');
+            if (!nick) return;
+            const ALLOWED_GRADE  = '2';
+            const ALLOWED_GROUPS = ['A','B'];
+            if (typeof firebase === 'undefined') return;
+            const db = firebase.firestore();
+            db.collection('usuarios').doc(nick).get().then(doc => {
+                if (!doc.exists) return;
+                const data  = doc.data();
+                const grado = String(data.grado || '');
+                const grupo = String(data.grupo || '').toUpperCase();
+                if (grado === ALLOWED_GRADE && ALLOWED_GROUPS.includes(grupo)) {
+                    const section = document.getElementById('exam-special-section');
+                    const tag     = document.getElementById('exam-group-tag');
+                    if (section) section.style.display = 'block';
+                    if (tag) tag.textContent = '· ' + grado + grupo;
+                }
+            }).catch(() => {});
+        })();
+    </script>
 </body>
 </html>

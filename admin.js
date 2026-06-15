@@ -102,7 +102,7 @@ document.addEventListener('DOMContentLoaded', () => {
     // ---- Load all students from Firestore ----
     async function loadStudents() {
         try {
-            studentsBody.innerHTML = `<tr><td colspan="5"><div class="empty-state"><div class="empty-icon">⏳</div><p>Cargando alumnos...</p></div></td></tr>`;
+            studentsBody.innerHTML = `<tr><td colspan="6"><div class="empty-state"><div class="empty-icon">⏳</div><p>Cargando alumnos...</p></div></td></tr>`;
             const snapshot = await db.collection('usuarios').get();
             allStudents = [];
             snapshot.forEach(doc => {
@@ -123,7 +123,7 @@ document.addEventListener('DOMContentLoaded', () => {
             renderTable(allStudents);
         } catch (error) {
             console.error('Error loading students:', error);
-            studentsBody.innerHTML = `<tr><td colspan="5"><div class="empty-state"><div class="empty-icon">❌</div><p>Error al cargar la base de datos.</p></div></td></tr>`;
+            studentsBody.innerHTML = `<tr><td colspan="6"><div class="empty-state"><div class="empty-icon">❌</div><p>Error al cargar la base de datos.</p></div></td></tr>`;
         }
     }
 
@@ -144,7 +144,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
         if (students.length === 0) {
             studentsBody.innerHTML = `
-                <tr><td colspan="5">
+                <tr><td colspan="6">
                     <div class="empty-state">
                         <div class="empty-icon">🔭</div>
                         <p>No se encontraron alumnos con los filtros aplicados.</p>
@@ -175,6 +175,9 @@ document.addEventListener('DOMContentLoaded', () => {
                 <td style="font-size:0.85rem;opacity:0.8;">${escHtml(student.correo || '-')}</td>
                 <td><span class="score-value">🔥 ${student.mejorRacha ?? 0}</span></td>
                 <td>
+                    ${getExamGradeBadge(student.mejorCalExamen, student.intentosExamen)}
+                </td>
+                <td>
                     <button class="delete-btn" data-id="${escHtml(student.id)}" data-name="${escHtml(student.nombre || student.id)}">
                         🗑 Eliminar
                     </button>
@@ -199,6 +202,26 @@ document.addEventListener('DOMContentLoaded', () => {
             .replace(/>/g, '&gt;')
             .replace(/"/g, '&quot;')
             .replace(/'/g, '&#39;');
+    }
+
+    // ---- Exam grade badge ----
+    function getExamGradeBadge(mejorCalExamen, intentosExamen) {
+        const attempts = parseInt(intentosExamen) || 0;
+        if (mejorCalExamen == null || mejorCalExamen === undefined) {
+            // Sin intentos aún
+            return `<span style="font-size:0.75rem;opacity:0.35;font-style:italic;">— Sin intento</span>`;
+        }
+        const grade = parseFloat(mejorCalExamen);
+        let color, bg, border;
+        if (grade >= 9)       { color = '#39ff14'; bg = 'rgba(57,255,20,0.1)';  border = 'rgba(57,255,20,0.4)';  }
+        else if (grade >= 7)  { color = '#00f2ff'; bg = 'rgba(0,242,255,0.1)';  border = 'rgba(0,242,255,0.4)';  }
+        else if (grade >= 6)  { color = '#ffb400'; bg = 'rgba(255,180,0,0.1)';  border = 'rgba(255,180,0,0.4)';  }
+        else                  { color = '#ff6b6b'; bg = 'rgba(255,68,68,0.1)';  border = 'rgba(255,68,68,0.4)';  }
+
+        const attemptsInfo = attempts >= 2 ? '🔒' : `(${attempts}/2)`;
+        return `<span style="display:inline-flex;align-items:center;gap:0.3rem;padding:3px 10px;border-radius:6px;font-size:0.8rem;font-weight:700;background:${bg};color:${color};border:1px solid ${border};white-space:nowrap;">
+                    📝 ${grade} <span style="font-size:0.65rem;opacity:0.6;">${attemptsInfo}</span>
+                </span>`;
     }
 
     // ---- Get filtered list ----
