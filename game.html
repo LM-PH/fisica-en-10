@@ -138,7 +138,7 @@
                 <button class="btn btn-secondary category-btn" data-tema="Universo" style="padding: 0.8rem; font-size: 0.9rem;">El Universo y su Origen</button>
             </div>
 
-            <!-- EXAMEN ESPECIAL — solo visible para grado 2, grupo A o B -->
+            <!-- EXAMEN ESPECIAL — visible para alumnos logueados de 2A y 2B -->
             <div id="exam-special-section" style="display:none; width:100%; border-top: 1px solid rgba(255,180,0,0.2); padding-top: 1rem; margin-top: 0.5rem;">
                 <p style="font-size:0.65rem;color:rgba(255,180,0,0.7);letter-spacing:2px;text-transform:uppercase;margin-bottom:0.6rem;">⚡ Evaluación especial</p>
                 <a href="examen.html" id="btn-special-exam"
@@ -236,31 +236,15 @@
     <script src="music.js"></script>
     <script src="mission.js?v=7.0"></script>
     <script>
-        // Mostrar botón Examen Especial solo para grado 2, grupos A o B
-        // Corre DESPUÉS de DOMContentLoaded para que mission.js ya inicializó Firebase
-        document.addEventListener('DOMContentLoaded', function() {
+        // Mostrar botón Examen Especial si hay un alumno logueado
+        // El control de acceso real (grado 2, grupo A/B) lo maneja examen.js
+        (function() {
             var nick = localStorage.getItem('user');
-            if (!nick) return;
-            if (typeof firebase === 'undefined') return;
-            if (!firebase.apps.length) {
-                firebase.initializeApp(window.firebaseConfig);
+            if (nick) {
+                var section = document.getElementById('exam-special-section');
+                if (section) section.style.display = 'block';
             }
-            var db = firebase.firestore();
-            db.collection('usuarios').doc(nick).get().then(function(doc) {
-                if (!doc.exists) return;
-                var data  = doc.data();
-                var grado = String(data.grado || '');
-                var grupo = String(data.grupo || '').toUpperCase();
-                if (grado === '2' && (grupo === 'A' || grupo === 'B')) {
-                    var section = document.getElementById('exam-special-section');
-                    var tag     = document.getElementById('exam-group-tag');
-                    if (section) section.style.display = 'block';
-                    if (tag)     tag.textContent = '· ' + grado + grupo;
-                }
-            }).catch(function(e) {
-                console.error('Error verificando grupo para examen:', e);
-            });
-        });
+        })();
     </script>
 </body>
 </html>

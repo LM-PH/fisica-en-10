@@ -114,8 +114,20 @@ document.addEventListener('DOMContentLoaded', async () => {
 
             // Verificar que sea grado 2 y grupo A o B
             if (state.grado !== ALLOWED_GRADE || !ALLOWED_GROUPS.includes(state.grupo)) {
-                // No pertenece al grupo del examen
-                window.location.href = 'game.html';
+                // No autorizado — mostrar mensaje en lugar de redirigir
+                show('blocked');
+                const blockedCard = document.querySelector('#blocked-screen .blocked-card');
+                if (blockedCard) {
+                    blockedCard.innerHTML = `
+                        <div style="font-size:3rem;margin-bottom:1rem;">🚫</div>
+                        <h2 style="font-size:1.4rem;font-weight:900;margin-bottom:0.6rem;color:#ff6b6b;">Sin acceso</h2>
+                        <p style="font-size:0.85rem;color:rgba(255,255,255,0.5);line-height:1.6;margin-bottom:1.5rem;">
+                            Este examen es exclusivo para los grupos <strong style="color:#ffb400;">2A y 2B</strong>.
+                            Tu grupo actual es <strong style="color:var(--neon-blue);">${state.grado}${state.grupo || '?'}</strong>.
+                        </p>
+                        <a href="game.html" class="btn btn-secondary" style="display:flex;text-decoration:none;">← Volver al Juego</a>
+                    `;
+                }
                 return;
             }
 
