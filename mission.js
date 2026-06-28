@@ -92,7 +92,7 @@ document.addEventListener('DOMContentLoaded', () => {
         const earnedTotal  = gameState.totalCorrect;
         const topicsAlreadyDone = gameState.completedTopics.length;
 
-        const ALL_TOPICS = ['Pascal', 'Arquímedes', 'Energía', 'Electricidad', 'Electromagnetismo', 'Universo'];
+        const ALL_TOPICS = ['Pascal', 'Arquímedes', 'Energía', 'Electricidad', 'Electromagnetismo', 'Universo', 'Pensamiento Científico', 'Unidades y Medidas', 'Características de la Materia', 'Estados de la Materia', 'Fuerza y Movimiento'];
 
         if (reason === 'perfect') {
             // Marcar el tema como completado
